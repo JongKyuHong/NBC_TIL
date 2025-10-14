@@ -201,6 +201,74 @@ p.Test();
 
 여기서는 Player가 호출된다. 생성자 안에서 PrintType을 호출한게 아니므로
 
+## explicit
+
+생성자를 이용한 암시적 형변환을 막는 키워드
+
+```c++
+class Player
+{
+public:
+    Player(int level)
+    {
+    }
+}
+```
+
+이렇게 되어있으면
+
+```c++
+Player p = 10;
+```
+
+이것도 가능하다 컴파일러가 사실상
+
+```c++
+Player p = Player(10);
+```
+
+처럼 바꿔준다. 이것을 방지하려면 함수명 앞에 explicit을 붙이면 암시적 변환을 금지시킨다.
+
+## 문자열 리터럴
+
+```c++
+#include <iostream>
+
+void Print(int value)
+{
+    std::cout << "int\n";
+}
+
+void Print(double value)
+{
+    std::cout << "double\n";
+}
+
+void Print(const char* value)
+{
+    std::cout << "char*\n";
+}
+
+int main()
+{
+    Print(10);
+    Print(3.14);
+    Print("Hello");
+    Print('A');
+}
+```
+
+```
+int
+double
+const char*
+int
+```
+
+로 매칭된다.
+"Hello"는 문자열 리터럴이고 이는 const char[6] 타입이다. 함수 인자로 전달될 때 const char\*로 변환된다.
+'A'는 char형인데 현재 char오버로드는 없으므로 후보중 가장 적절한 char -> int변환이 가능해서 int로 승격
+
 # CS
 
 ## 메모리
@@ -277,6 +345,86 @@ Heap 영역
 -> new등으로 동적 할당한 데이터
 ```
 
+## 물리 코어, 하드웨어 스레드
+
+같은 물리 코어 안의 두 하드웨어 스레드는 "실행 상태"는 따로 가지고, 실제 연산 장치와 캐시같은 코어 자원은 상당 부분 공유
+
+### 하드웨어 스레드별로 따로
+
+- 레지스터 상태
+- Stack Pointer
+- Program Counter
+- 실행 컨텍스트
+
+### 같은 물리코어에서 공유
+
+- ALU / FPU같은 실행 유닛
+- 캐시 일부
+- 메모리 접근 대역폭
+- 기타 CPU 내부 실행 자원
+
+> 각 하드웨어 스레드는 자기 실행 상태는 따로 가지지만, 실제 계산 자원은 같은 물리코어 안에서 공유한다.
+
+## Priority Inversion
+
+우선순위가 높은 스레드가 낮은 스레드 때문에 오히려 기다리게 되는 현상
+
+```
+1. L이 mutex 획득
+2. H가 실행됨
+   → mutex 필요
+   → L 때문에 대기
+3. M이 실행됨
+   → M은 L보다 우선순위가 높음
+   → CPU를 계속 사용
+4. L은 CPU를 못 받아서 mutex를 못 품
+5. H는 계속 대기
+```
+
+높은 우선순위 H가 사실상 중간 우선순위 M보다도 늦게 실행되는 것처럼 보이는 증상
+
+### 해결 방법
+
+Priority Inheritance
+
+```
+H가 L의 mutex를 기다림
+-> L의 우선순위를 임시로 H수준까지 올림
+-> L이 빨리 실행돼서 mutex해제
+-> H실행
+-> L 우선순위 원래대로 복구
+```
+
+## DIP
+
+의존성 역전 원칙
+
+1. 상위 수준 모듈은 하위 수준 모듈에 의존하지 않아야 한다. 둘 다 추상화에 의존해야 한다.
+2. 추상화는 구체적인 구현에 의존하지 않고, 구체적인 구현이 추상화에 의존해야 한다.
+
+상위 수준 = 무엇을 할지 결정하는 정책
+하위 수준 = 그 정책에 필요한 구체적인 구현
+
+이는 문과 상호작용하는 캐릭터를 통해서 익히면 된다.
+문은 캐릭터한테 열쇠가 있는지 알아야 하고, 열쇠가 있다면 열리게끔 해야하는데 문에 캐릭터관련 의존성을 넣으면 문을 여는 다른 NPC나 pet같은게 생겼을때 계속 늘어나야 하고, 캐릭터에 문 의존성을 넣자니 캐릭터가 문의 열림 조건과 동작까지 알아야 하고, 새로운 상호작용 대상이 추가될 때마다 캐릭터 코드를 수정해야 하는 문제가 발생한다. 이때 Interface를 사용해서 캐릭터와 문이 Interface에 의존하도록 만든다.
+
+```c++
+class IItemProvider
+{
+public:
+    virtual bool HasItem(int itemId) const = 0;
+    virtual ~IItemProvider() = default;
+};
+
+class Player : public IItemProvider{
+    ...
+    bool HasItem(int ItemId) const override
+    {
+        return InventoryData.HasItem(ItemId);
+    }
+};
+```
+
 # Unreal
 
 ## TSubClassOf
@@ -310,4 +458,47 @@ AWeapon* Weapon = GetWorld()->SpawnActor<AWeapon>(
 
 ## TWeakObjectPtr
 
+TWeakObjectPtr<T>는 UObject 계열객체를 `소유하지 않고 잠깐 참조`할 때 쓰는 약한 포인터
 
+## Push Model
+
+복제 변수 값이 바뀌었는지 엔진이 계속 비교해서 찾는 대신, 값이 바뀐 순간 개발자가 '이 변수 바뀌었다'고 표시하는 방식
+
+기본적인 Replication방식은
+
+```
+Polling
+
+서버
+-> Replicated 변수들을 주기적으로 확인
+-> 이전 값과 비교
+-> 바뀌었으면 클라이언트에 전송
+```
+
+Actor와 Replicated Property가 많아지면 안바뀐값까지 계속 확인하는 비용이 생길 수 있다.
+
+Push Model은 반대로
+
+```
+Health변경
+-> Health바뀌었음 표시
+-> Replication 시스템
+-> 변경된 Property를 복제
+```
+
+dirty표시하는 MarkPropertyDirty기능이 있다.
+
+```c++
+UPROPERTY(Replicated)
+float Health;
+
+//
+Health = 50.f // Health변경
+MARK_PROPERTY_DIRTY_FROM_NAME(
+    AMyCharacter,
+    Health,
+    this
+); // dirty표시
+```
+
+처럼 Health가 바뀌었다고 알려줌
