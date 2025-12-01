@@ -169,12 +169,14 @@ int main()
 
 #### 문제2. 숫자 카드
 
-- [내 풀이]
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EC%88%AB%EC%9E%90%EC%B9%B4%EB%93%9C.cpp)
 - 값이 존재하는지 확인하는 부분이 있기때문에 map을 사용하면 효율적일것이라고 생각했습니다.
 - 값의 존재만 확인하면 되기때문에 unordered_map을 사용하는것이 훨씬 효율적이라는것을 배웠습니다.
 - 지금처럼 result를 이어붙여서 출력하기 보다는 바로 출력하는게 제일 나을것 같습니다.
 
-- [개선해본 풀이]
+##### 내 풀이 개선하기
+
+- [개선해본 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EC%88%AB%EC%9E%90%EC%B9%B4%EB%93%9C%EA%B0%9C%EC%84%A0.cpp)
 
 - 수정 전 속도
   ![](https://velog.velcdn.com/images/kyu_/post/93e4d32c-30ff-40e7-8a7d-a0ffcc01fd2b/image.png)
@@ -187,12 +189,14 @@ int main()
 
 #### 문제3. 대칭 차집합
 
-- [내 풀이]
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EB%8C%80%EC%B9%AD%EC%B0%A8%EC%A7%91%ED%95%A9.cpp)
 - 차집합이기 때문에 조회를 해야하므로 map이 효율적일것이라고 생각
 - set으로 합집합에서 중복을 제거
 - 이 문제도 unordered 자료구조를 사용하면 더 효율적일것이라고 생각했다.
 
-- [내 풀이 개선]
+##### 내 풀이 개선하기
+
+- [내 풀이 개선](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EB%8C%80%EC%B9%AD%EC%B0%A8%EC%A7%91%ED%95%A9%EA%B0%9C%EC%84%A0.cpp)
 - 개선 전
   ![](https://velog.velcdn.com/images/kyu_/post/a4b87f5e-1df0-4c6e-873c-0ac25984f172/image.png)
 - 개선 후
