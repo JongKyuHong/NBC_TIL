@@ -206,5 +206,42 @@ int main()
 
 - set, map, 문자열 위주로 백준문제들 풀어보자
 
-- 문자열
-  - https://www.acmicpc.net/problem/2941
+#### 문자열
+
+- [크로아티아 알파벳](https://www.acmicpc.net/problem/2941)
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%ED%81%AC%EB%A1%9C%EC%95%84%ED%8B%B0%EC%95%84%EC%95%8C%ED%8C%8C%EB%B2%B3.cpp)
+  - 단어 길이가 100글자로 굉장히 짧으므로 시간부담없이 그냥 모든 경우의 수를 분기해서 풀었다.
+- [그룹 단어 체커](https://www.acmicpc.net/problem/1316)
+
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EA%B7%B8%EB%A3%B9%EB%8B%A8%EC%96%B4%EC%B2%B4%EC%BB%A4.cpp)
+  - 삽입, 조회가 빠른 unordered_set사용해보았다.
+
+- [너의 평점은](https://www.acmicpc.net/problem/25206)
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EB%84%88%EC%9D%98%ED%8F%89%EC%A0%90%EC%9D%80.cpp)
+  - cout << fixed, cout.precision(n)기억해놓기
+
+#### 집합과 맵
+
+- [문자열 집합](https://www.acmicpc.net/problem/14425)
+
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%EB%AC%B8%EC%9E%90%EC%97%B4%EC%A7%91%ED%95%A9.cpp)
+
+- [회사에 있는 사람](https://www.acmicpc.net/problem/7785)
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/2%EC%A3%BC%EC%B0%A8/code/%ED%9A%8C%EC%82%AC%EC%97%90%EC%9E%88%EB%8A%94%EC%82%AC%EB%9E%8C.cpp)
+  - 시간초과로 애먹였던 문제, 로직상으로도 문제가 없어보이고 여러 로직을 번갈아가며 시도했는데도 오류가나서 뭘까 했다.
+  - 비밀은 마지막에 한줄씩 출력할때 기존 코드는
+  ```
+  for (auto& p : v)
+  {
+  	cout << p << endl;
+  }
+  ```
+  - 이런식으로 endl을 너무 많이 사용했다는 문제가있었다 이를 개행문자로 변경해주니 아주빠르게 통과할 수 있었다.
+
+# 오늘 총평
+
+- 오늘 처음으로 언리얼 블루프린트에서 enum, array, struct등을 써보았다.
+- 특히 언리얼 3번과제에서 struct배열을 다루는 부분에서 새로운것을 많이 접해보았다.
+  - 함수, format text, set array elem, struct배열을 get a copy해서 사용하는 등
+- 과제를 마치고 오후에는 거의 C++에만 집중을 했는데 빨리 익숙해지고 싶어서 코드를 많이 쳐보는식으로 공부했다.
+- unordered_set, unordered_map을 특히 많이 사용했으며, 백준에서 문자열 문제들도 풀면서 문자열을 다루는것도 익숙해지려고 노력했다.
