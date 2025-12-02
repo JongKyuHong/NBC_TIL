@@ -156,11 +156,11 @@ print string은 잘뜨는데 내가 원하는 것처럼 발판위에 올라가�
 
 ##### 오류
 
-![](https://velog.velcdn.com/images/kyu_/post/2c3d3f2c-c958-49cc-9e52-925c0ebe27e0/image.gif)
+![](https://velog.velcdn.com/images/kyu_/post/84585df3-bb38-4c38-b8b6-3e80a47baf6f/image.png)
 
 오브가 안없어지고 오브 위에 올라갈 수 있다.
 -> orb의 collision이 BlockByAllDynamic으로 되어있었다. OverlapByAllDynamic으로 변경
 
-![업로드중..](blob:https://velog.io/6697ee35-5435-4107-b978-3e02940b854c)
+![](https://velog.velcdn.com/images/kyu_/post/2c3d3f2c-c958-49cc-9e52-925c0ebe27e0/image.gif)
 
 의도한대로 점프오브를 만들었다!
