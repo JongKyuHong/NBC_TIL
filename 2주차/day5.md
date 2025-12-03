@@ -1,3 +1,95 @@
+# 언리얼
+
+## 구현 과정
+
+어제 하던 과제 좀 더 컨텐츠 늘리기
+
+### 구현 과정
+
+#### JumpOrb 변경
+
+적절한 스태틱메시를 찾아서 JumpOrb를 변경해주었다.
+![](https://velog.velcdn.com/images/kyu_/post/2286afa7-7949-4c29-8cf3-c0c86c3e3195/image.png)
+- 귀여운 코어 모양
+- 이에 맞게 이벤트 그래프도 변경해주었고, 마지막 지점에 들어갈때 발판을 제거하고 Orb로만 구성을 했다.
+
+![](https://velog.velcdn.com/images/kyu_/post/196d96e8-3d68-4dc8-8cd5-fda3620b925c/image.png)
+
+- 오브가 없어지면 다시 건널수가 없으니 오브는 destroy되는것이 아니라 몇초뒤에 다시 생성되는것으로 변경하였다.
+
+![](https://velog.velcdn.com/images/kyu_/post/67f03adc-3317-4c1d-ae67-43d1fa121985/image.png)
+
+- Set Actor Hidden In Game, Set Collision Enabled를 통해서 먹은 당시에는 사라지고 4초뒤에 재생성되게끔 만들었다.
+
+![](https://velog.velcdn.com/images/kyu_/post/237a5fb7-856e-4653-a276-db5200e0522a/image.gif)
+
+
+
+#### SavePoint만들기
+
+스태틱메시는 동전같이 생긴게 있길래 이걸로 정했다.
+
+![](https://velog.velcdn.com/images/kyu_/post/8427eb72-7d12-4a21-95f1-40593c985734/image.png)
+
+기존에 killzone을 만들때 bp_gamemode를 만들어 놓은것이 있어서 그것을 활용하고자 하였다.
+
+![](https://velog.velcdn.com/images/kyu_/post/4c8113ed-71e4-43d2-9cf3-786e0897a2a4/image.png)
+
+현재 게임모드의 이벤트 그래프는 이렇게 되어있는데, savepoint를 먹었을때 respawn location에 set만 해주면 되었다.
+
+![](https://velog.velcdn.com/images/kyu_/post/4507e3dc-cb6d-4d8a-bbfd-edfcd5f22d82/image.png)
+
+![](https://velog.velcdn.com/images/kyu_/post/1def19e8-05de-4ecc-84f1-f6eec77023a2/image.gif)
+
+- 세이브포인트를 먹으면 그 자리에서 리스폰된다.
+
+#### 발판 버튼 트리거
+
+![](https://velog.velcdn.com/images/kyu_/post/20a7a1af-9946-4c05-abab-90d671d70eed/image.png)
+
+이렇게 흩어져있는 발판들을 앞의 버튼처럼생긴 발판을 누르면 한데 모이게끔 구현하려고 했다.
+
+![](https://velog.velcdn.com/images/kyu_/post/9a47a6e7-a2ac-4843-aa8b-f52ee83a184c/image.png)
+
+- BP_TogglePlatform (직접 움직이는 발판) 블루프린트에 커스텀 이벤트를 만들고
+
+![](https://velog.velcdn.com/images/kyu_/post/3d702d8d-f6f7-43ae-9d90-8300583bdb9d/image.png)
+
+![](https://velog.velcdn.com/images/kyu_/post/89957d7c-cd4b-4b0f-98a2-c5e7b3de1fd8/image.png)
+
+- BP_TriggerButton(트리거 버튼) 블루프린트에는 BP Toggle Platform을 Array변수로 만들어서 뷰포트에서 하나씩 지정해주었다.
+
+![](https://velog.velcdn.com/images/kyu_/post/eabf3cf0-c333-411f-9a5f-54bfab373c58/image.gif)
+
+- 완성!
+
+#### 게임 종료
+
+![](https://velog.velcdn.com/images/kyu_/post/1cc52ae7-a4b3-4d20-96ab-8ebef182bf0e/image.png)
+
+- ~~미니 프로젝트 우려먹기~~
+
+![](https://velog.velcdn.com/images/kyu_/post/1141d742-55d3-4eb4-a370-a0d5ec81fac1/image.gif)
+
+- 오브를 먹으면 Game Clear!가 출력되고 3초후에 꺼진다.
+
+#### 약간의 조작감 개선
+
+![](https://velog.velcdn.com/images/kyu_/post/f3832c9d-8e5a-4c07-af58-51098b232eea/image.gif)
+
+- 점프할때 움직이는 발판 속도에 영향을 받는듯한 느낌이 들었다.
+
+![](https://velog.velcdn.com/images/kyu_/post/597bf079-8bcc-4776-99f8-e4ff7176beea/image.png)
+
+- Impart Base
+  - Impart Base는 캐릭터가 서있는 Base의 속도를 캐릭터에게 얼마나 넘겨줄지에대한 속성이라고 한다.
+  - 이를 전체 해제해줌으로써 조작감 개선을 이뤘다.
+  
+![](https://velog.velcdn.com/images/kyu_/post/248568a5-ba11-4fac-8714-cfa5c9427a5b/image.gif)
+
+
+
+
 # C++
 
 ## 우선순위 큐
