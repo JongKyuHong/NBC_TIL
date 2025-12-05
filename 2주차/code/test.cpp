@@ -2,15 +2,10 @@
 using namespace std;
 
 int main() {
-    const int SIZE = 1000000; // 1,000,000개의 정수 (약 4MB)
-    int arr1[SIZE]; 
-    int arr2[SIZE];
+    int x = 3;    // 정수형 변수 x 선언
+    int* ptr = &x; // 포인터 ptr에 x의 주소 저장
 
-    for (int i = 0; i < SIZE; i++) {
-        arr2[i] = arr1[i];
-    }
-
-    cout << "배열 복사 완료" << endl;
-
-    return 0;
+    cout << "x의 값: " << x << endl;
+    cout << "x의 주소: " << &x << endl;
+    cout << "ptr의 값(저장된 주소): " << ptr << endl;
 }
