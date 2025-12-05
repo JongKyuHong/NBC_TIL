@@ -1,11 +1,10 @@
 #include <iostream>
 using namespace std;
 
-int main()
-{
-    int a = 10;
-    int b= a;
-    cout << "a: " << a << ", b: " << b << endl;
+int main() {
+    const int SIZE = 1000000; // 1,000,000개의 정수 (약 4MB)
+    int arr1[SIZE]; 
+    int arr2[SIZE];
 
     return 0;
 }
