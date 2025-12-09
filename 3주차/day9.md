@@ -241,3 +241,10 @@ if (it != str.end()) {
 ### 2주차 숙제
 
 - [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day9Q5.cpp)
+
+### 1번과제
+
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day9Q6.cpp)
+
+- 1번과제 내 풀이인데 아직 도전 기능같은것을 안만들었다.
+- 함수 재사용성, SOLID원칙을 최대한 지키려고했는데 조금 더 고민해봐야 할 것 같다.
