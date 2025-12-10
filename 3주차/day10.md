@@ -2,6 +2,8 @@
 
 ## 알고리즘 문제 풀어보기
 
+알고리즘 문제 풀면서 새로 알게된 내용 정리
+
 ### 1.
 
 [내 학점을 구해줘] (https://www.acmicpc.net/problem/10984)
@@ -39,7 +41,7 @@ koong(arr);
   - &vec[0] : 첫번째 요소 주소 꺼내서 줌
   - vec.data() : C++ 11부터 지원, 내부 배열 시작주소(int\*)를 반환
 
-- [내 풀이] ()
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day10/Q1.cpp)
 
 ### 4.
 
@@ -57,7 +59,7 @@ if (ring.find(keyword) != string::npos) {...};
   - 타입 : size_t
   - 의미 : 유효하지 않은 인덱스
 
-- [내 풀이] ()
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day10/Q2.cpp)
 
 #### 문자열 메서드
 
@@ -72,3 +74,31 @@ if (ring.find(keyword) != string::npos) {...};
 - to_string(숫자)
 - stoi(문자열)
 - reverse(str.begin(),str.end()) : 문자열 뒤집기, algorithm헤더 필요
+
+### 5.
+
+- [알파벳 찾기] (https://www.acmicpc.net/problem/10809)
+
+```c++
+int index = S[i] - 'a';
+```
+
+- S[i]가 소문자일때 문자 - 문자를 통해서 둘의 아스키코드 차이만큼 int로 받을 수 있었다.
+
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day10/Q3.cpp)
+
+### 6.
+
+- [단어의 개수] (https://www.acmicpc.net/problem/1152)
+
+- sstream
+- istringstream 사용법
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day10/Q4.cpp)
+
+### 7.
+
+- [진법 변환] (https://www.acmicpc.net/problem/2745)
+
+- char형 숫자를 계산할때 '0'을 빼주어야 한다는것을 배웠다.
+
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day10/Q5.cpp)
