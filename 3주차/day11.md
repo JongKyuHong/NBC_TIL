@@ -1,5 +1,46 @@
 # C++
 
+## 도전실습
+
+### 미니 실습
+
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day11/Q3.cpp)
+- this->Speed는 Speed라는 이름이 중복되었을때 말고는 굳이 쓸필요없다.
+- 생성자에서 string& Name으로 매개변수를 받을때 문제가 되었었다. const로 바꾸니까 해결
+
+### 도전 실습
+
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day11/Q4.cpp)
+
+![](https://velog.velcdn.com/images/kyu_/post/4d7c8c60-9061-48f5-8cbf-98db6b12bc49/image.png)
+
+- 멤버함수만들때 const를 붙이라는 알림이 나옴
+- 멤버함수에 const를 붙이는 기준은 객체(this)의 상태를 변경하지 않으면 붙이면 된다.
+- getter함수이기 때문에 단순히 반환만 해주어서 const를 붙이게 되었다.
+
+#### cppLint특강
+
+- 특강 듣고 도전실습 코드 돌렸더니 에러가 136개가 나왔다ㄷㄷ
+
+- [개선풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day11/Q4_1.cpp)
+- 개선!
+
+### 도전X도전 실습
+
+![](https://velog.velcdn.com/images/kyu_/post/a9dbbf91-bcc9-4f6d-ba5b-413498543f02/image.png)
+
+- 멤버함수에 const를 쓸때는 호출하는 다른 멤버함수도 const화 되어있어야 한다.
+
+![](https://velog.velcdn.com/images/kyu_/post/37a82408-461b-486d-8bd7-a434400b14a2/image.png)
+
+- 멤버초기화 리스트에서 배열 처음 사용해봄 {}
+
+![](https://velog.velcdn.com/images/kyu_/post/a66a7b77-2eaa-4d8e-9369-64f0ab033e65/image.png)
+
+- Aircraft클래스에서 Pilot crew[2]로 정의되어있는데 만약에 입력이 덜들어 올것을 대비해서 Pilot에 기본 생성자 만들어줌
+
+-[내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day11/Q5.cpp)
+
 ## 알고리즘 문제 풀어보기
 
 ### 1.
