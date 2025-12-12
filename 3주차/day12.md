@@ -80,8 +80,50 @@ int* arr = new int[arr_size];
 
 - [개선](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/2.cpp)
 
+- 개선 전 후 시간비교
+  ![](https://velog.velcdn.com/images/kyu_/post/8d3a6797-c3de-4ffb-a6e1-c97e9b68afea/image.png)
+- 시간이 많이 개선되었다.
+
 ### 3.
 
 - [체스판 다시 칠하기] (https://www.acmicpc.net/problem/1018)
 
+- 쉬운문제라고 무시했다가 중간에 설계 잘못해서 생각보다 시간이 오래걸린문제
+- 알고리즘 풀이 할때도 공책에 쓰면서 해야 될것같다.
+
 - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/4.cpp)
+- [다른 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/5.cpp)
+- 다른 풀이를 보면 체스판 패턴을 만들고 직접 비교하는데 이게 더 나은것 같다.
+
+### 4.
+
+- [나이순 정렬] (https://www.acmicpc.net/problem/10814)
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/6.cpp)
+- algorithm헤더에있는 sort로 처리하려니 골치아팠던 문제
+- stable_sort라고 들어온 순서를 보장하는 sort를 사용하면 된다.
+
+```c++
+stable_sort(vec.begin(), vec.end()); // 이렇게만쓰면 나이와 이름까지 다 비교하게 된다.
+```
+
+### 5.
+
+- [좌표 압축] ()
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/7.cpp)
+- 처음에 set을 사용하고, find로 위치를 찾아서 distance라는것을 사용해서 인덱스를 반환해주었는데 distance가 O(N)의 시간복잡도를 가지고있어서 실패했다.
+- distance(begin, it) : 시작부터 it까지 길이, it-begin() : 벡터에서 찾을때는 이렇게
+
+- [개선 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/8.cpp)
+- Map을 조회하는데 사용해서 풀었다.
+
+- [다른 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day12/9.cpp)
+- lower_bound를 이용한 풀이
+- lower_bound란??
+  - 이진탐색 기반으로 동작하는 STL알고리즘
+  - 정렬된 배열에서 특정 값 이상인 첫 번째 원소의 위치를 찾아주는 함수
+
+```c++
+int index = lower_bound(sorted_vec.begin(), sorted_vec.end(), vec[i]) - sorted_vec.begin();
+```
+
+// 처음부터 끝까지 순회하면서 첫번째로 vec[i]이상인 원소를 찾아줌 그것을 begin()으로 빼줘서 인덱스 형태로 만든다.
