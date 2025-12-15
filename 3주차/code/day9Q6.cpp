@@ -1,8 +1,9 @@
 #include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
+
+enum { HP, MP, ATK, DEF };
 
 void SetHPMP(int* statusPtr)
 {
@@ -13,15 +14,15 @@ void SetHPMP(int* statusPtr)
 		int InpMP;
 		cin >> InpHP >> InpMP;
 
-		if (InpHP < 50 || InpMP < 50)
+		if (InpHP <= 50 || InpMP <= 50)
 		{
 			cout << "HP나 MP의 값이 너무 작습니다. 다시 입력해주세요.\n";
 			continue;
 		}
 		else
 		{
-			*statusPtr++ = InpHP;
-			*statusPtr = InpMP;
+			statusPtr[HP] = InpHP;
+			statusPtr[MP] = InpMP;
 			return;
 		}
 	}
@@ -56,53 +57,55 @@ void setPotion(const int& count, int* p_HPPotion, int* p_MPPotion)
 	*p_MPPotion = count;
 }
 
+// 시스템 메시지를 출력하는 함수, 항상 메뉴가 나오도록 했다.
 void printDisplay(const bool& IsItFirst)
 {
-	if (IsItFirst)
-	{
-		cout << "<스탯 관리 시스템>\n" <<
+	cout << "<스탯 관리 시스템>\n" <<
 			"1. HP UP\n2. MP UP\n3. 공격력 UP\n4. 방어력 UP\n5. 현재 능력치\n6. Level UP\n0. 나가기\n";
-	}
 	cout << "번호를 선택해주세요: ";
 }
 
+// 포션을 가지고있는지 확인하는 함수
 bool HasPotion(int* Potion)
 {
-	if (*Potion == 0)
+	if (*Potion <= 0)
 	{
 		return false;
 	}
 	return true;
 }
 
+// 포션이 없는경우 상태 메시지를 출력하는 함수
 void NotifyPotionEmpty()
 {
 	cout << "포션이 부족합니다." << endl;
 }
 
-void SetHpUp(const int& value, int* statusPtr, int* Potion)
+// void SetHpUp(const int& value, int* statusPtr, int* Potion)
+// {
+// 	*statusPtr += value;
+// 	*Potion -= 1;
+// }
+
+// 포션을 1개 차감하는 함수
+void SetHPMpUp(const int& value, int* statusPtr, int* Potion)
 {
 	*statusPtr += value;
 	*Potion -= 1;
 }
 
-void SetMpUp(const int& value, int* statusPtr, int* Potion)
+// 공격력/방어력을 늘려주는 함수
+void SetAtkDefUp(const int& value, int* statusPtr)
 {
-	*statusPtr += value;
-	*Potion -= 1;
+	*statusPtr = value * (*statusPtr);
 }
 
-void SetAtkUp(const int& value, int* statusPtr)
-{
-	*statusPtr = value * *statusPtr;
-}
+// void SetDefUp(const int& value, int* statusPtr)
+// {
+// 	*statusPtr = value * (*statusPtr);
+// }
 
-void SetDefUp(const int& value, int* statusPtr)
-{
-	*statusPtr = value * *statusPtr;
-}
-
-
+// HP/MP 변경 메시지 출력
 void PrintHPMPChange(const int& value, const string& StName,  int& CurrentSt, int& CurrentPotionCnt)
 {
 	cout << "*" << StName << "가" << value << "증가되었습니다." << "포션이 1개 차감됩니다.\n" 
@@ -110,34 +113,42 @@ void PrintHPMPChange(const int& value, const string& StName,  int& CurrentSt, in
 		<< "남은 포션 수 : " << CurrentPotionCnt << endl;
 }
 
+// 공격력/방어력 변경 메시지 출력
 void PrintATKDEFChange(const int& Multiply, const string& StName,  int& CurrentSt)
 {
 	cout << "*" << StName << "이 " << Multiply << "배로 증가되었습니다.\n" <<
 		"현재 " << StName << ": " << CurrentSt << endl;
 }
 
+// 현재 스텟 출력 함수
 void printSt(int* statusPtr) 
 {
 	cout << "* HP : " << statusPtr[0] << ", MP : " << statusPtr[1] << ", 공격력 : " << statusPtr[2] << ", 방어력 : " << statusPtr[3] << endl;
 }
 
+// 레벨업 함수
+// HP, MP포션을 하나씩 더 지급
 void LevelUp(int* HpPotion, int*MpPotion)
 {
 	*HpPotion += 1;
 	*MpPotion += 1;
 }
 
+// 레벨업시 메시지 출력 함수
+// 현재 포션수를 출력함
 void LevelUpPrint(const int& HpPotion, const int& MpPotion)
 {
 	cout << "* 레벨업! HP/MP 포션이 지급됩니다.\n" <<
 		"남은 HP/MP 포션 수 : " << HpPotion << "/" << MpPotion << endl;
 }
 
+// 프로그램 종료 메시지 함수
 void EndGame()
 {
 	cout << "프로그램을 종료합니다." << endl;
 }
 
+// 잘못된 입력 메시지 함수
 void InValidInput()
 {
 	cout << "입력이 잘못되었습니다." << endl;
@@ -145,9 +156,6 @@ void InValidInput()
 
 int main()
 {
-
-	enum { HP, MP, ATK, DEF };
-
 	int status[] = { 0, 0, 0, 0 };
 	SetHPMP(status);
 	SetAtkDef(status);
@@ -171,7 +179,7 @@ int main()
 		case 1:
 			if (HasPotion(&HpPotionCount))
 			{
-				SetHpUp(20, &status[HP], &HpPotionCount);
+				SetHPMpUp(20, &status[HP], &HpPotionCount);
 				PrintHPMPChange(20, "HP", status[HP], HpPotionCount);
 			} 
 			else
@@ -182,7 +190,7 @@ int main()
 		case 2:
 			if (HasPotion(&MpPotionCount))
 			{
-				SetMpUp(20, &status[MP], &MpPotionCount);
+				SetHPMpUp(20, &status[MP], &MpPotionCount);
 				PrintHPMPChange(20, "MP", status[MP], MpPotionCount);
 			}
 			else
@@ -191,11 +199,11 @@ int main()
 			}
 			break;
 		case 3:
-			SetAtkUp(2, &status[ATK]);
+			SetAtkDefUp(2, &status[ATK]);
 			PrintATKDEFChange(2, "공격력", status[ATK]);
 			break;
 		case 4:
-			SetDefUp(2, &status[DEF]);
+			SetAtkDefUp(2, &status[DEF]);
 			PrintATKDEFChange(2, "방어력", status[DEF]);
 			break;
 		case 5:
