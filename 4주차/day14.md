@@ -1,3 +1,5 @@
+![](https://velog.velcdn.com/images/kyu_/post/b1ca266d-9a62-4085-9030-6468edeec611/image.png)
+
 # C++
 
 ## 온라인 강의 복습하기
