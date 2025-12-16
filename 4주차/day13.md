@@ -36,8 +36,6 @@ case 1: {
 
 ### 2. 도전 기능 가이드
 
-0
-
 ```c++
 class Monster{
     public:
