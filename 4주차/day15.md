@@ -362,44 +362,125 @@ decltype(ref) b = x; // int& 참조 유지됨
 ### 설계
 
 1. Inventory<T> 클래스작성
-   - [ ] 템플릿 클래스로 작성
+   - [x] 템플릿 클래스로 작성
 2. 멤버 변수를 할당한다.
-   - [ ] T\* pItems\_
-   - [ ] int capacity\_
-   - [ ] int size\_
+   - [x] T\* pItems\_
+     - 동적 배열을 가리키는 포인터
+   - [x] int capacity\_
+     - 최대 공간
+   - [x] int size\_
+     - 현재 공간
 3. 생성자
-   - [ ] 매개변수로 용량을 받고, 값을 전달하지 않으면 기본값 10으로 설정한다.
-   - [ ] 0이하의 값은 1로 보정
-   - [ ] new T[capacity_]로 힙에 할당
+   - [x] 매개변수로 용량을 받고, 값을 전달하지 않으면 기본값 10으로 설정한다.
+   - [x] 0이하의 값은 1로 보정
+   - [x] new T[capacity_]로 힙에 할당
 4. 소멸자
-   - [ ] delete[] pItems\_ 으로 메모리 해제
-   - [ ] 메모리 해제 후 포인터 nullptr로 초기화
+   - [x] delete[] pItems\_ 으로 메모리 해제
+   - [x] 메모리 해제 후 포인터 nullptr로 초기화
 5. void AddItem(const T& item)
-   - [ ] size\_가 capacity보다 작은경우 아이템 추가, size 1증가
-   - [ ] 인벤토리가 꽉차면 메시지 출력
+   - [x] size\_가 capacity보다 작은경우 아이템 추가, size 1증가
+   - [x] 인벤토리가 꽉차면 "인벤토리가 꽉 찼습니다!" 메시지 출력
 6. void RemoveLastItem()
-   - [ ] 실제 메모리를 지우지 않고, 아이템 개수를 나타내는 size\_를 1감소 시킴
-   - [ ] 인벤토리 비어있으면 메시지 출력
+   - [x] 실제 메모리를 지우지 않고, 아이템 개수를 나타내는 size\_를 1감소 시킴
+   - [x] 인벤토리 비어있으면 "인벤토리가 비어있습니다." 메시지 출력
 7. int GetSize() cosnt
-   - [ ] size\_반환
+   - [x] size\_반환
 8. int GetCapacity() const
-   - [ ] capacity\_ 반환
+   - [x] capacity\_ 반환
 9. void PrintAllItems() const
-   - [ ] for문 Index로 0 ~ size\_-1 순회
-   - [ ] 각 객체의 PrintInfO()함수 호출
+   - [x] for문 Index로 0 ~ size\_-1 순회
+   - [x] 각 객체의 PrintInfO()함수 호출
+
+```c++
+// 정보를 출력하는 멤버 함수
+void PrintInfo() const {
+    cout << "[이름: " << name_ << ", 가격: " << price_ << "G]" << endl;
+}
+```
+
+    - [x] 인벤토리가 비어있다면 (비어있음) 출력
 
 ### 도전 기능 설계
 
 10. 복사 생성자 및 대입 함수 구현
-    - [ ] 인벤토리 복사/대입 시 깊은복사 구현
-    - [ ] Inventory(const Inventory<T>& other); (복사생성자 구현)
+    - [x] 인벤토리 복사/대입 시 깊은복사 구현
+    - [x] Inventory(const Inventory<T>& other); (복사생성자 구현)
       - 객체 생성+초기화 시 호출
-    - [ ] void Assign(const Inventory<T>& ohter); (대입 역할 함수 구현)
+    - [x] void Assign(const Inventory<T>& ohter); (대입 역할 함수 구현)
       - 이미 존재하는 객체 값 덮어씌움
 11. AddItem 기능 확장
     - [ ] 인벤토리 꽉찬상태로 호출 시 기존 capacity의 2배로 확장하고 새로운 아이템 추가
 12. Resize 멤버 함수 추가
-    - [ ] void Resize(int newCapacity) : 인벤토리의 capacity를 newCapacity로 변경
+    - [x] void Resize(int newCapacity) : 인벤토리의 capacity를 newCapacity로 변경
 13. SortItems 멤버 함수 추가
-    - [ ] void SortItmes() : 가격 오름차순으로 정렬
-    - [ ] 표준 라이브러리 sort함수 활용, 정렬기준 정의는 compareItemByPrice를 사용
+    - [x] void SortItmes() : 가격 오름차순으로 정렬
+    - [x] 표준 라이브러리 sort함수 활용, 정렬기준 정의는 compareItemByPrice를 사용
+
+### 구현
+
+- 내일 코드보면서 적기
+
+## C++복습 세션
+
+### 퀴즈 3: 아래 코드는 자식 클래스의 Speak() 함수가 호출되고 있지 않아요. 호출이 잘 되도록 수정해 보세요!
+
+```c++
+#include <iostream>
+
+using namespace std;
+
+class Animal {
+public:
+    void Speak() {
+        cout << "Animal sound\n";
+    }
+};
+
+class Dog : public Animal {
+public:
+    void Speak() {
+        cout << "Woof!\n";
+    }
+};
+
+int main() {
+    Animal* p = new Dog();
+    p->Speak();
+    delete p;
+}
+```
+
+- void Pseack에 virtual추가, Dog의 Speak에 override추가
+- Speak()함수가 일반 함수이기 때문에 포인터의 타입을 기준으로 함수가 결정된다.
+- 정적 바인딩 혹은 컴파일 타임 바인딩이라고 한다.
+- virtual을 붙이면 동적바인딩 또는 런타임 바인딩이 되어 실제 객체의 타입을 기준으로 함수가 결정된다.
+
+### 퀴즈 4: 아래 코드는 delete시 메모리에서 해제 되지 않는 문제가 발생해요. 메모리에서 해제가 잘 되도록 수정해 보세요!
+
+```c++
+#include <iostream>
+
+using namespace std;
+
+class Base {
+public:
+    ~Base() {
+        cout << "~Base" << endl;
+    }
+};
+
+class Derived : public Base {
+public:
+    ~Derived() {
+        cout << "~Derived" << endl;;
+    }
+};
+
+int main() {
+    Base\* p = new Derived();
+    delete p;
+}
+```
+
+- 부모의 소멸자를 virtual로 만들면 된다.
+- 소멸자가 virtual이 아니면, Base\* 포인터를 기준으로 Base의 소멸자만 호출된다.
