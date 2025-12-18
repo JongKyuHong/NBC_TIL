@@ -132,14 +132,14 @@ myInventory.PrintAllItems();
 
 ### 체크포인트 적기
 
-- [ ] 제공된 코드 분석
-- [ ] 검색기능 추가하기
-  - [ ] 물약 이름으로 검색 가능
-  - [ ] 재료로 검색 가능, 특정재료가 포함된 모든 레시피 찾기
-- [ ] 물약은 초기3개
+- [x] 제공된 코드 분석
+- [x] 검색기능 추가하기
+  - [x] 물약 이름으로 검색 가능
+  - [x] 재료로 검색 가능, 특정재료가 포함된 모든 레시피 찾기
+- [x] 물약은 초기3개
 - [ ] 지급 및 반환
 
-  - [ ] 특정 물약의 현재 재고 수량
+  - [x] 특정 물약의 현재 재고 수량
   - [ ] 물약이름으로 재고 검색, 재고 1개 이상일 경우 모험가에게 지급할 수 있어야함
   - [ ] 레시피 재료로 물약들의 재고 검색, 재고 1개이상인 경우 지급할 수 있어야함
   - [ ] 모험가에게 지급한 물약 공병 반환받기
@@ -148,3 +148,376 @@ myInventory.PrintAllItems();
 - [ ] 어떤 의도로 코드를 구현했는지 정리
 - [ ] 수정 시 기존 코드의 수정을 최소화하면서 수정할 수 있는 방안이 있는지 고려했는가
 - [ ] SOLID 원칙을 잘 준수하고 있는가
+
+### 구현
+
+#### 1. 코드 분석하기
+
+```c++
+if (std::cin.fail()) {
+    std::cout << "잘못된 입력입니다. 숫자를 입력해주세요." << std::endl;
+    std::cin.clear();
+    std::cin.ignore(10000, '\n');
+    continue;
+}
+```
+
+- 입출력 방어코드, 숫자가 아닌값이 들어오면 다시 입력받는다.
+- `cin.ignore(10000, '\n')`은 입력버퍼에 들어있을수도있는 쓰레기값을 최대 만개 혹은 줄바꿈 문자가 나올때까지 버린다.
+
+```c++
+void addRecipe(const std::string& name, const std::vector<std::string>& ingredients) {
+    recipes.push_back(PotionRecipe(name, ingredients));
+    std::cout << ">> 새로운 레시피 '" << name << "'이(가) 추가되었습니다." << std::endl;
+}
+```
+
+- addRecipe을 호출하면 멤버변수 `std::vector<PotionRecipe> recipes;`에 PotionRecipe클래스의 객체를 넣게 된다.
+- PotionRecipe의 객체는 멤버변수를통해 이름과 재료목록을 가지고있음
+
+#### 2. 검색기능 만들기
+
+- 물약이름으로 검색
+
+```c++
+PotionRecipe searchRecipeByName(const std::string& name) {
+    for (PotionRecipe recipe : recipes) {
+        if (recipe.potionName == name) {
+            return recipe;
+        }
+    }
+    return ;
+}
+```
+
+- 멤버함수의 반환타입이 PotionRecipe이라서 일치하는 이름이 없을때 빈 객체를 넘겨주어야하는데 좋은 아이디어가 떠오르지 않았음
+- 함수 반환값을 포인터로 변경하는 방법을 추천받았지만 우선은 PotionRecipe클래스에서 빈 생성자를 만들어서 해결하였다.
+
+```c++
+class PotionRecipe {
+public:
+    std::string potionName;
+    std::vector<std::string> ingredients;
+
+    PotionRecipe() : potionName("") {} // 빈생성자 생성
+    PotionRecipe(const std::string& name, const std::vector<std::string>& ingredients)
+    : potionName(name), ingredients(ingredients) {
+    }
+....
+
+PotionRecipe searchRecipeByName(const std::string& name) {
+    for (PotionRecipe recipe : recipes) {
+        if (recipe.potionName == name) {
+            return recipe;
+        }
+    }
+    return PotionRecipe(); // 검색어와 일치하는 이름이 없으면 빈 객체 리턴
+}
+```
+
+- 재료로 검색
+- 이게 좀 문제였다. 당장 생각나는건 모든 recipes 벡터를 순회하면서 재료들에서 검색어와 일치하는지를 확인하고 일치하면 그 레시피를 새로운 벡터안에 넣어서 리턴한다.
+
+```
+std::vector<PotionRecipe> searchRecipeByIngredient(const std::string& ingredient) {
+    std::vector<PotionRecipe> res;
+    for (const PotionRecipe& recipe : recipes) {
+        for (const std::string& ingredient_ : recipe.ingredients) {
+            if (ingredient == ingredient_) {
+                res.push_back(recipe);
+                break;
+            }
+        }
+    }
+
+    return res;
+}
+```
+
+- 우선은 처음에 생각한대로 구현해보았다.
+
+#### 3. 필수 기능 가이드 완료
+
+- [내 코드](https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/day16/4번과제_1.cpp)
+
+#### 4. 도전기능 가이드
+
+- 다이어그램을 참고하니 기존에 AlchemyWorkshop 클래스에 집중되어있던 기능들을 다른 클래스로 분리한다고 이해했다.
+
+#### 5. 기능들 이전하기
+
+- 우선 findRecipeByName부터 이전하였다.
+
+```c++
+PotionRecipe* findRecipeByName(std::string name) {
+    for (const PotionRecipe& recipe : recipes) {
+        if (recipe.potionName == name) {
+            return recipe;
+        }
+    }
+    return PotionRecipe();
+}
+```
+
+- 기존에는 포션레시피 자체가 반환값이였지만 이번에는 포인터였다.
+
+```c++
+PotionRecipe* findRecipeByName(std::string name) {
+    for (PotionRecipe& recipe : recipes) {
+        if (recipe.potionName == name) {
+            return &recipe;
+        }
+    }
+    return nullptr;
+}
+```
+
+- 이렇게 바꿔서 해결하였다.
+- return에 아무생각없이 &PotionRecipe[0]을 사용했는데 이거는 댕글링 포이터 발생 소지가 있어서 nullptr로 급하게 변경
+- 기존에 PotionRecipe을 사용할때는 for문에서 const를 써도 상관이 없었다. return recipe을 할때 const인 원본 객체의 내용을 복사해서 새로운 객체를 만들어서 반환하므로
+- 허나 포인터로 반환값이 바뀌었을때 &recipe을 반환하려고 하면 수정 불가능한 객체의 주소가 된다. 하지만 PotionRecipe\*의 경우 수정 가능한 객체의 주소이다.
+
+이게 이해하기 어려워서 ai한테 예시를 달라고 하였다.
+
+```
+상황 비유: "박물관 전시품" 🖼️
+PotionRecipe (객체): 아주 귀중한 그림입니다.
+
+const PotionRecipe& (const 참조): "만지지 마시오" 팻말이 붙은 그림입니다. (눈으로만 봐야 함, 수정 불가)
+
+PotionRecipe* (일반 포인터): 그림을 수정할 수 있는 붓과 물감을 쥔 화가 자격증입니다.
+
+1. 기존 코드 (값 반환) 상황
+"이 그림이랑 똑같은 짝퉁(복사본) 하나 그려서 가져가세요."
+
+return recipe; // (복사 반환)
+
+당신은 "만지지 마시오" 팻말이 붙은 그림(const)을 보고 있습니다.
+
+그걸 보고 똑같이 베껴서 **새로운 그림(복사본)**을 그렸습니다.
+
+이 복사본을 반환하는 겁니다.
+
+원본 그림을 만진 게 아니니까, 원본이 const여도 아무 상관이 없죠? 그래서 에러가 안 난 겁니다.
+
+2. 포인터 반환 코드 상황 (에러 발생)
+"저 그림을 수정할 수 있는 권한(주소)을 넘겨주세요."
+
+return &recipe; // (주소 반환)
+
+함수 반환 타입(PotionRecipe*)은 **"그림을 마음대로 덧칠할 수 있는 권한"**을 달라는 뜻입니다.
+
+그런데 지금 보고 있는 recipe는 **"만지지 마시오(const)"**가 붙어있습니다.
+
+당신이 "만지지 마시오" 붙은 그림의 주소를 넘겨주면서 **"자, 여기 가서 마음대로 수정하세요"**라고 하면 어떻게 될까요?
+
+박물관 경비원(컴파일러)이 달려와서 막습니다. "이건 수정 금지된 그림인데, 왜 수정 권한을 주려고 합니까? 안 됩니다!" 🚨
+
+해결책은?
+경비원에게 혼나지 않으려면 둘 중 하나를 해야 합니다.
+
+1. "만지지 마시오" 팻말을 떼고 들어간다. (제가 추천한 방법)
+
+반복문 돌릴 때 const를 뺍니다. (for (PotionRecipe& recipe : recipes))
+
+그러면 처음부터 수정 가능한 상태로 그림을 보니까, 주소를 넘겨줘도 문제가 없습니다.
+
+2. 반환받는 사람도 "눈으로만 볼게요"라고 약속한다.
+
+함수 반환 타입을 const PotionRecipe*로 바꿉니다.
+
+"수정 금지된 그림의 주소니까, 가져가서 수정은 못 하실 겁니다"라고 명시하는 거죠.
+```
+
+- addRecipe
+
+```c++
+PotionRecipe* addRecipe(std::string& name, std::vector<std::string> ingredients) {
+    recipes.push_back(PotionRecipe(name, ingredients));
+    return &recipes[recipes.size()-1];
+}
+```
+
+- PotionRecipe\*를 반환해주어야 해서 만든 객체의 주소를 어떻게 반환해주어야 하나 생각했는데 벡터안에 들어있는 원본값의 주소를 반환해주는식으로 해결했다.
+
+## C++ 복습 세션
+
+### map의 []
+
+```c++
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main()
+{
+    map<string, int> m;
+    m["Potion"] = 5;
+
+    cout << "A size=" << m.size() << endl;
+
+    cout << "m[Shield]=" << m["Shield"] << endl; // 없는 key 접근
+
+    cout << "B size=" << m.size() << endl;
+}
+```
+
+- 1, 0, 2가 출력된다.
+- C++은 map의 []임의접근으로 없는키에 접근했을때 0으로 새로 만들어버린다.
+
+### map의 emplace
+
+```c++
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main()
+{
+    map<string, int> m;
+    m["Bow"] = 1;
+
+    auto result = m.emplace("Bow", 999);
+
+    cout << (result.second ? "emplace success" : "emplace fail") << endl;
+    cout << "Bow=" << m["Bow"] << endl;
+}
+```
+
+- insert와 똑같이 이미 키가 존재하면 생성하지 않음
+- emplace가 성능이 더 좋다. (맵 내부에서 객체를 직접 생성해서 복사가 없음)
+- insert는 이미 객체가 있는것을 넣을때 쓰면되고, emplace는 새로 만들면서 바로 넣을때 사용하면 된다.
+
+### find사용 이유
+
+```c++
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main()
+{
+    map<string, int> m;
+    m["Sword"] = 2;
+
+		// 임의 접근을 사용 하지 않고 find 를 사용
+    auto it = m.find("Shield");
+
+		// 출력을 예상해 봐요
+    if (it != m.end())
+    {
+		    cout << it->second << endl;
+    }
+    else
+    {
+		    cout << "not found" << endl;
+    }
+}
+```
+
+- 임의접근을 사용하면 없던키에 대해서도 0으로 값을 만들어 버리기때문에
+
+### next
+
+```c++
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+void Print(const map<string, int>& m)
+{
+    for (auto& p : m) cout << p.first << ":" << p.second << " ";
+    cout << endl;
+}
+
+int main()
+{
+    map<string, int> m;
+    m["C"] = 3;
+    m["A"] = 1;
+    m["B"] = 2;
+    m["D"] = 4;
+
+    // 첫 출력 ( 원본 )
+    Print(m);
+
+    // 범위 요소 삭제
+    if (m.size() > 2)
+    {
+        auto first = m.begin();
+        auto last = m.end();
+        --last;
+        m.erase(next(first), last);
+    }
+
+    // 범위 삭제 후 출력
+    Print(m);
+}
+```
+
+- iterator헤더에 정의된 `전역함수`
+- 앞으로 n칸이동한 반복자를 next(v, 3);
+
+## 학습 가이드
+
+### 도전 실습
+
+```
+* 안녕하세요, 기획자 김나쁜입니다.
+* 오늘도 일감을 전달드립니다.
+* 아래 순서대로 UI에 캐릭터를 표시해주세요.
+* 아래 요구사항의 우선순위는 위에서 아래로 높아요.
+
+1. 성급을 기준으로 내림차순
+2. 각성을 기준으로 내림차순 정렬
+3. 레벨을 기준으로 내림차순 정렬
+4. 예외처리: 위의 세 기준이 모두 동일할 경우, id를 기준으로 오름차순 정렬
+
+감사합니다.
+```
+
+```c++
+bool compareCharacters(const Character& a, const Character& b)
+{
+    if (a.starRank != b.starRank) {
+        return a.starRank > b.starRank;
+    }
+
+    if (a.awakening != b.awakening) {
+        return a.awakening > b.awakening;
+    }
+
+    if (a.level != b.level) {
+        return a.level > b.level;
+    }
+
+    return a.id < b.id;
+}
+```
+
+- 정렬기준에 대해서 기억해놓자
+- a > b 면 내림차순, a < b는 오름차순
+
+### 참고자료
+
+#### 기존 배열과 vector의 차이점
+
+- 유연성과 메모리 관리
+- 기존 배열 : 고정된크기, 스택에저장, 속도 가장빠름, 안정성 떨어짐
+- vector : 동적인 크기, 힙에 저장, 속도 약간 오버헤드, 안정성 좋고 관리 쉬움
+
+#### 반복자
+
+- 컨테이너의 내부 구조가 배열이든 트리든 상관없이 다음요소로 이동하거나(++) 값에 접근(\*)하는 방법을 통일시킨 도구
+
+## 오늘 마무리
+
+- 템플릿 기반 Inventory<T>를 만들때 new T[capacity]는 T의 기본 생성자를 필요로 한다.
+- map의 operator[]는 키가 없으면 자동으로 새원소를 만들어 삽입한다. find랑 구분해서 사용
+- emplace는 insert와 비슷하지만 객체를 맵 자체에서 만들어서 생성한다. 기존에 객체가 있던것을 사용하면 insert, 새로만든다면 emplace쓰자
+- next(it, n) 반복자를 n칸 이동시키는 전역함수
+- 정렬은 a > b 는 내림차순 a < b는 오름차순이다.
