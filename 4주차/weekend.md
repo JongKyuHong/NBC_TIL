@@ -437,3 +437,22 @@ int main() {
    -> 그 메모리 위치에 Dog의 생성자를 호출해서 객체 초기화
    -> 그 메모리 주소 반환
    -> 그래서 반환타입 포인터
+
+## 알고리즘
+
+- [소수의 연속합](https://www.acmicpc.net/problem/1644)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/1.cpp)
+
+- [소수구하기](https://www.acmicpc.net/problem/1929)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/2.cpp)
+
+- [프린터 큐](https://www.acmicpc.net/problem/1966)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/3.cpp)
+
+- [스택 수열](https://www.acmicpc.net/problem/1874)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/4.cpp)
+
+- [통계학] (https://www.acmicpc.net/problem/2108)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/5.cpp)
+
+- 소수 출력 부분을 확실하게 기억해야 할듯
