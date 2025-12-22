@@ -414,6 +414,10 @@ int main() {
 }
 ```
 
+### 언리얼 엔진 기본 개념
+
+
+
 ### 질문들
 
 1. 순수가상함수랑 그냥 가상 함수 차이가 자식에서 무조건 구현해야된다 아니다 차이인거지?
@@ -456,3 +460,6 @@ int main() {
 - [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/5.cpp)
 
 - 소수 출력 부분을 확실하게 기억해야 할듯
+
+- [집합](https://www.acmicpc.net/problem/11723)
+- [내 풀이] (https://github.com/JongKyuHong/NBC_TIL/blob/main/3%EC%A3%BC%EC%B0%A8/code/weekend/6.cpp)
