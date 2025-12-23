@@ -71,3 +71,23 @@ string solution(vector<string> seoul) {
 - string의 find
   - str.find("값");
   - 못찾으면 string::npos반환, 찾아도 다른애들은 반환타입이 이터레이터인데 얘는 size_t
+
+### 벡터에서 가장 작은 값 찾기
+
+```c++
+#include <algorithm>
+
+using namespace std;
+
+vector<int> solution(vector<int> arr) {
+    auto it = min_element(arr.begin(), arr.end());
+    arr.erase(arr.begin() + distance(arr.begin(), it));
+    if (arr.empty()){
+        arr.push_back(-1);
+    }
+    return arr;
+}
+```
+
+- 알고리즘 헤더의 min_element를 활용하면 된다.
+- 가장 작은 값의 이터를 반환해주고 distance를 통해서 인덱스를 찾고 해당 인덱스의 값을 삭제해준다.
