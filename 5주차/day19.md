@@ -91,3 +91,22 @@ vector<int> solution(vector<int> arr) {
 
 - 알고리즘 헤더의 min_element를 활용하면 된다.
 - 가장 작은 값의 이터를 반환해주고 distance를 통해서 인덱스를 찾고 해당 인덱스의 값을 삭제해준다.
+
+### 문자열 <-> 문자 변환, substr등
+
+```c++
+string solution(string s) {
+    int len = s.length();
+    string tmp;
+    int index = s.length() / 2;
+    if (len % 2){
+        tmp = s.substr(index, 1);
+    } else {
+        tmp = s.substr(index-1, 2);
+    }
+
+    return tmp;
+}
+```
+
+- 가운데 글자 가져오기 문제
