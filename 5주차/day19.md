@@ -110,3 +110,24 @@ string solution(string s) {
 ```
 
 - 가운데 글자 가져오기 문제
+
+### 숫자변환
+
+```c++
+#include <cctype>
+
+bool solution(string s) {
+    if (s.length() == 4 || s.length() == 6){
+        for (int i = 0; i < s.length(); i++){
+            if (!isdigit(s[i])){
+                return false;
+            }
+        }
+        return true;
+    } else{
+        return false;
+    }
+}
+```
+
+- isdigit은 cctype헤더에 있다.
