@@ -47,3 +47,27 @@ int solution(int num) {
 - long long에다가 넣어주니 해결되었다. 문제의 조건을 보고 수의 범위를 생각하면서 해야될듯
 
 ### find활용방법
+
+```c++
+#include <algorithm>
+
+string solution(vector<string> seoul) {
+    string answer = "";
+    auto it = find(seoul.begin(), seoul.end(), "Kim");
+    answer = "김서방은 " + to_string(it-seoul.begin()) + "에 있다";
+    return answer;
+}
+```
+
+- 서울에서 김서방 찾기문제를 풀때 처음에 vector의 find활용방법이 헷갈렸다.
+- 이번기회에 한번 정리해야겠다.
+
+- vector, list는 altorithm헤더의 find를 쓴다.
+  - find(vec.begin(), vec.end(), 찾는값);
+  - 못찾으면 vec.end()반환
+- 멤버 함수 find() : 보통 set, map, multimap, multiset, unordered_set, unordered_map에서 사용
+  - map.find(키 혹은 값)
+  - 못찾으면 map.end()반환
+- string의 find
+  - str.find("값");
+  - 못찾으면 string::npos반환, 찾아도 다른애들은 반환타입이 이터레이터인데 얘는 size_t
