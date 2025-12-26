@@ -1,4 +1,4 @@
-# 언리얼
+![](https://velog.velcdn.com/images/kyu_/post/b3b671de-2bc3-42a9-bdeb-53d05286a996/image.png)
 
 ## 5번 과제하기
 
@@ -181,27 +181,60 @@ void AMyActor::EventPrint(const FString& EventType) {
 
 - Move()냐 Turn()이냐에 따라 다르게 로그를 출력시켜주었다.
 
-## 점프업 반 복습
+## 코드카타
 
-### Call by Pointer, Reference
+### set을 vector로 변환
+
+- 두개 뽑아서 더하기 문제
 
 ```c++
-void changeValueP(int* ptr){
-	*ptr = 999;
+#include <string>
+#include <vector>
+#include <unordered_set>
+#include <algorithm>
+
+using namespace std;
+
+vector<int> solution(vector<int> numbers) {
+    unordered_set<int> us;
+    for (int i = 0; i < numbers.size()-1; i++){
+        for (int j = i+1; j < numbers.size(); j++){
+            us.insert(numbers[i]+numbers[j]);
+        }
+    }
+
+    vector<int> answer(us.begin(), us.end());
+
+    sort(answer.begin(), answer.end());
+
+    return answer;
 }
+```
 
-void changeValueR(int& ref){
-	ref = 999;
-}
+- vector를 선언할때 셋의 이터레이터를 넘겨주어 셋을 안정적으로 벡터로 변환할 수 있다.
 
-int main(){
-	int num = 10;
-	int num2 = 20;
+### 람다 함수 정렬에서 외부변수 사용하기
 
-	changeValueP(&num);
-	changeValueR(num)
+- 문자열내마음대로정렬하기
 
-	return 0;
+```c++
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+vector<string> solution(vector<string> strings, int n) {
+    vector<string> answer;
+
+    sort(strings.begin(), strings.end(), [n](const auto& a, const auto& b){
+        if (a[n] == b[n]){
+            return a < b;
+        }
+        return a[n] < b[n];
+    });
+
+    return strings;
 }
 ```
 
@@ -266,60 +299,3 @@ int main(){
 - 상호작용 가능한 모든것을 하나의 방식으로 다룬다.
 - 예를들어 문열기, 아이템줍기, npc대화 각각 다른 클래스인데 어떻게 E키=상호작용 하나로 처리??
 - 인터페이스로 해결
-
-# 코드카타
-
-### set을 vector로 변환
-
-- 두개 뽑아서 더하기 문제
-
-```c++
-#include <string>
-#include <vector>
-#include <unordered_set>
-#include <algorithm>
-
-using namespace std;
-
-vector<int> solution(vector<int> numbers) {
-    unordered_set<int> us;
-    for (int i = 0; i < numbers.size()-1; i++){
-        for (int j = i+1; j < numbers.size(); j++){
-            us.insert(numbers[i]+numbers[j]);
-        }
-    }
-
-    vector<int> answer(us.begin(), us.end());
-
-    sort(answer.begin(), answer.end());
-
-    return answer;
-}
-```
-
-- vector를 선언할때 셋의 이터레이터를 넘겨주어 셋을 안정적으로 벡터로 변환할 수 있다.
-
-### 람다 함수 정렬에서 외부변수 사용하기
-
-- 문자열내마음대로정렬하기
-
-```c++
-#include <string>
-#include <vector>
-#include <algorithm>
-
-using namespace std;
-
-vector<string> solution(vector<string> strings, int n) {
-    vector<string> answer;
-
-    sort(strings.begin(), strings.end(), [n](const auto& a, const auto& b){
-        if (a[n] == b[n]){
-            return a < b;
-        }
-        return a[n] < b[n];
-    });
-
-    return strings;
-}
-```
