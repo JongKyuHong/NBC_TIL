@@ -48,3 +48,33 @@
 ​- Pawn(또는 Character): 실제로 월드에 존재하며 이동/충돌/행동을 수행하는 플레이어 캐릭터 본체
 
 # 코드카타
+
+```c++
+#include <iostream>
+#include <numeric>
+
+using namespace std;
+
+long long gcd_ll(long long a, long long b) {
+    while (b != 0) {
+        long long r = a % b;
+        a = b;
+        b = r;
+    }
+    return a;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    long long A, B;
+    cin >> A >> B;
+
+    long long g = gcd_ll(A, B);
+    long long lcm = (A / g) * B;
+
+    cout << lcm << "\n";
+    return 0;
+}
+```
