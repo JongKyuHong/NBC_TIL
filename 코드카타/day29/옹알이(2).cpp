@@ -43,7 +43,5 @@ int solution(vector<string> babbling) {
             answer++;
         }
     }
-    
-    
     return answer;
 }
