@@ -442,3 +442,114 @@ int main() {
 ```
 
 - 말도 안되게 편리하다.
+
+- [여중생 파댕이와 공부를](https://www.acmicpc.net/problem/30980)
+
+```c++
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int N, M;
+
+void parser(int row, int col, vector<string>& vec) {
+    char num1 = vec[row][col+1];
+    char num2 = vec[row][col+3];
+
+    string result = "";
+    // 결과가 한자리면 5번에만, 두자리면 5번6번
+    char tmp = vec[row][col+6];
+    if (tmp != '.') {
+        result = string(1,vec[row][col+5]) + vec[row][col+6];
+    } else {
+        result += vec[row][col+5];
+    }
+    int n1 = num1 - '0';
+    int n2 = num2 - '0';
+    if (n1 + n2 == stoi(result)) {
+        // 정답
+        vec[row][col] = '*';
+        if (result.length() == 1) {
+            vec[row][col+6] = '*';
+            for (int i = 1; i <= 5; i++) {
+                vec[row - 1][col + i] = '*';
+                vec[row + 1][col + i] = '*';
+            }
+        } else {
+            vec[row][col+7] = '*';
+            for (int i = 1; i <= 6; i++) {
+                vec[row - 1][col + i] = '*';
+                vec[row + 1][col + i] = '*';
+            }
+        }
+
+    } else {
+        // 오답
+        vec[row - 1][col+3] = '/';
+        vec[row][col+2] = '/';
+        vec[row + 1][col+1] = '/';
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    cin >> N >> M;
+    vector<string> vec(3*N, "");
+
+    for (int i = 0; i < 3 * N; i++) {
+        for (int j = 0; j < 8 * M; j++) {
+            char inp;
+            cin >> inp;
+            vec[i].push_back(inp);
+        }
+    }
+
+    int row = 1;
+    int col = 0;
+
+    // 문자열 파싱
+    while (true) {
+        parser(row, col, vec);
+        if (col + 8 < 8 * M) {
+            col += 8;
+        } else {
+            col = 0;
+            row += 3;
+            if (row >= 3 * N) {
+                break;
+            }
+        }
+    }
+
+    for (auto ve : vec) {
+        for (auto v : ve) {
+            cout << v;
+        }
+        cout << "\n";
+    }
+
+    return 0;
+}
+```
+
+- result = vec[row][col+5]; string에 char를 직접넣으니까 올바르지않다 이런경우에는 result += vec[row][col+5];로 +=를 쓰면 넣어진다고 함
+
+- result = vec[row][col+5] + vec[row][col+6]; 이 부분에서 앞이 1 뒤가 6일때 result가 g가 되는 괴현상이 있었는데 char + char는 아스키코드값이 합쳐진다고 한다 그래서
+
+```
+result += vec[row][col+5];
+result += vec[row][col+6];
+```
+
+이렇게 두번 반복하던 아니면
+
+```
+result = string(1, vec[row][col+5]) + vec[row][col+6];
+```
+
+이렇게 string(1, char)를 써주면 된다고 한다. string+char는 string판정이다.
+string의 첫번째 인자는 길이가 몇인 string으로 반환해주느냐 인데 만약에 3이들어가면 char자리에 있는 문자가 3번 반복된다.
