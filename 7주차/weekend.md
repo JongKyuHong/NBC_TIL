@@ -309,3 +309,7 @@ for (int i = 0; i < T; i++) {
 
 - [단어 퍼즐](https://www.acmicpc.net/problem/9946)
   - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/단어퍼즐.cpp)
+
+-[끝말잇기](https://www.acmicpc.net/problem/28432)
+
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/끝말잇기.cpp)
