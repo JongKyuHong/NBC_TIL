@@ -317,3 +317,128 @@ for (int i = 0; i < T; i++) {
 -[아~파트 아파트](https://www.acmicpc.net/problem/31797)
 
 - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/아파트아파트.cpp)
+
+- [다음 순열] (https://www.acmicpc.net/problem/10972)
+
+내가 굉장히 어려워하는 유형
+
+```
+예: [1, 3, 5, 4, 2]
+
+1단계: 뒤에서부터 보면서 처음으로 감소하는 위치 찾기
+       [1, 3, 5, 4, 2]
+            ↑
+       i = 1 (v[1]=3)
+
+2단계: i 뒤쪽에서 v[i]보다 큰 수 중 가장 작은 수 찾기
+       [1, 3, 5, 4, 2]
+               ↑
+       j = 3 (v[3]=4)
+
+3단계: v[i]와 v[j] 교환
+       [1, 4, 5, 3, 2]
+
+4단계: i+1 이후를 오름차순 정렬
+       [1, 4, 2, 3, 5]
+
+```
+
+- 실제 풀이 순서는 이렇다고 한다.
+
+```c++
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N;
+    cin >> N;
+
+    vector<string> vec;
+
+    vector<int> v(N);
+    for (int i = 0; i < N; i++) {
+        cin >> v[i];
+    }
+
+    // 1.뒤에서부터 순회하면서 처음으로 값이 작아지는 위치를 찾는다.
+    int i = N - 2;
+    while (i >= 0 && v[i] >= v[i + 1]) {
+        i--;
+    }
+
+    // i가 -1이면 이미 마지막 순열인것
+    if (i == -1) {
+        cout << -1 << '\n';
+        return 0;
+    }
+
+    // 2. i보다 뒤쪽에서 i보다 큰데 가장 작은값을 찾는다.
+    // 지금 처럼도 찾을 수 있는이유는 값이 i쪽에 가까워질수록
+    // 작아지지는 않으니까 보장됨
+    int j = N - 1;
+    while (v[j] <= v[i]) {
+        j--;
+    }
+
+    // 3. v[i]와 v[j] 교환
+    swap(v[i], v[j]);
+
+    // 4. i+1부터 뒤는 다 정렬
+    sort(v.begin() + i + 1, v.end());
+
+    for (int x : v) {
+        cout << x << ' ';
+    }
+    cout << '\n';
+
+    return 0;
+}
+```
+
+- 이해를 위해서 이렇게 푸는 방법도 있다는것을 배웠고
+- 실제로 C++에서는 next_permutation이라는 STL을 사용하면 쉽게 풀 수 있다고 한다.
+
+```c++
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N;
+    cin >> N;
+
+    vector<string> vec;
+
+    vector<int> v(N);
+    for (int i = 0; i < N; i++) {
+        cin >> v[i];
+    }
+
+    if (next_permutation(v.begin(), v.end())) {
+        for (int x : v) {
+            cout << x << ' ';
+        }
+        cout << '\n';
+    } else {
+        cout << -1 << '\n';
+    }
+
+
+    return 0;
+}
+```
+
+- 말도 안되게 편리하다.
