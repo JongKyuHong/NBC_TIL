@@ -276,9 +276,9 @@ int main() {
 ### 문제 푼거
 
 - [초코바](https://www.acmicpc.net/problem/27959)
-  - [내 풀이]()
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/%EC%B4%88%EC%BD%94%EB%B0%94.cpp)
 - [더하기](https://www.acmicpc.net/problem/11024)
-  - [내 풀이]()
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/%EB%8D%94%ED%95%98%EA%B8%B04.cpp)
 
 ```c++
 int T;
@@ -300,6 +300,8 @@ for (int i = 0; i < T; i++) {
 ```
 
 - T를 입력하자마자 0이 출력되는 버그가 있었는데 T 뒤에 \n개행 문자가 남아서 cin.ignore()를 달아주어야 했다.
+
   - 이런부분은 참 불편한듯..
 
-- 
+- [크리스마스 파티](https://www.acmicpc.net/problem/10708)
+  - [내 풀이]()
