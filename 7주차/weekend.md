@@ -313,3 +313,7 @@ for (int i = 0; i < T; i++) {
 -[끝말잇기](https://www.acmicpc.net/problem/28432)
 
 - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/끝말잇기.cpp)
+
+-[아~파트 아파트](https://www.acmicpc.net/problem/31797)
+
+- [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/아파트아파트.cpp)
