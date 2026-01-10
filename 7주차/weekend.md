@@ -304,4 +304,8 @@ for (int i = 0; i < T; i++) {
   - 이런부분은 참 불편한듯..
 
 - [크리스마스 파티](https://www.acmicpc.net/problem/10708)
-  - [내 풀이]()
+
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/%ED%81%AC%EB%A6%AC%EC%8A%A4%EB%A7%88%EC%8A%A4%ED%8C%8C%ED%8B%B0.cpp)
+
+- [단어 퍼즐](https://www.acmicpc.net/problem/9946)
+  - [내 풀이](https://github.com/JongKyuHong/NBC_TIL/blob/main/%EC%BD%94%EB%93%9C%EC%B9%B4%ED%83%80/weekend7/단어퍼즐.cpp)
