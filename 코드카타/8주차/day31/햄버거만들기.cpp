@@ -24,6 +24,5 @@ int solution(vector<int> ingredient) {
         }
     }
     
-    
     return answer;
 }
