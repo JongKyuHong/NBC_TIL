@@ -1,3 +1,6 @@
+![](https://velog.velcdn.com/images/kyu_/post/bce41dfe-0450-4a34-b3a6-c8780c55aa4d/image.png)
+![](https://velog.velcdn.com/images/kyu_/post/9fafff5a-0521-49dc-898a-e893567fe650/image.png)
+
 # 언리얼C++강의
 
 ## 3-1 강의
@@ -176,3 +179,41 @@ vector<int> solution(string today, vector<string> terms, vector<string> privacie
 
 - substr활용(시작위치, 길이)
 - 모든 월이 28일로 고정되어서 쉽게 풀었다.
+
+# 총 정리
+
+1. 인터페이스
+
+- 클래스가 반드시 구현해야하는 함수 목록(계약서)
+- 상속과 달리 함수의 틀만 약속하므로 결합도 낮아지고 확장성 좋다.
+- 인터페이스 포인터 배열로 다형성도 챙길 수 있음
+
+2. 충돌 이벤트
+
+- Overlap은 감지 Hit은 물리적 충돌
+
+3. 아이템 구조체
+
+- 구조체로 아이템 종류/확률을 관리
+- CSV, JSON을 사용할수도 있음
+
+4. PlayerState
+
+- 멀티플레이에서는 자주 사용한다.
+- 동기화가 필요하기때문
+
+5. GameMode
+
+- 규칙/스폰/사망처리 등 게임 규칙
+- 서버 전용
+- 클라이언트도 알아야하면 GameState에 두자
+
+6. GameInstance
+
+- 레벨 전환 시 대부분의 객체가 재생성되므로 사용
+- 전역데이터를 두고 사용하면 된다.
+- 멀티에서는 Seamless Travel 고려
+
+7. 코드카타
+
+- substr사용법 익히기
