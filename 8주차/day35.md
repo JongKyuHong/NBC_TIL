@@ -50,6 +50,14 @@ public:
 - SpawnItem()
   - 파라미터로 받은 아이템 클래스를 SpawnVolume내부의 랜덤위치에 생성
 
+## 캐릭터 체력쪽
+
+### UGameplayStatics
+
+- 언리얼에서 게임플레이 관련된 유틸리티 함수들을 모아놓은 정적 클래스
+- 위치: Engine 모듈에 속해있으며, #include "Kismet/GameplayStatics.h"를 추가해야 사용 가능
+- 주요 용도: 데미지 적용, 사운드 재생, 스폰, 월드 관련 작업 등 게임플레이 전반의 편리한 기능 제공.
+
 # 코드카타
 
 ## 배열의 곱셈
