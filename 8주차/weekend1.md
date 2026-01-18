@@ -26,8 +26,8 @@ SpawnActor를 통해 임의 좌표에 여러개 배치하는 랜덤 스테이지
   - [x] BasePlatform 클래스
     - [x] MovingPlatform
     - [x] RotatingPlatform
-  - [ ] FinishZone
-- [ ] C++ 클래스 구현
+  - [x] FinishZone
+- [x] C++ 클래스 구현
   - [x] C++ 클래스를 블루프린트로 상속하기
     - [x] 각 클래스 완성 시 레벨에 배치하고 테스트
 
@@ -116,3 +116,45 @@ void AMovingPlatform::Tick(float DeltaTime)
 - 발판 이동속도도 너무 느린것같아서 에디터에서 기존 50.0f에서 150.0f로 3배 늘려주었다.
 
 ![](https://velog.velcdn.com/images/kyu_/post/0726e92e-6cbc-415e-83a1-0055dd498f21/image.gif)
+
+#### FinishZone만들기
+
+```c++
+void AFinishZone::BeginPlay()
+{
+	Super::BeginPlay();
+    Collision->OnComponentBeginOverlap.AddDynamic(this, &AFinishZone::OnOverlap);
+}
+
+void AFinishZone::OnOverlap(
+    UPrimitiveComponent* OverlappedComponent,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex,
+    bool bFromSweep,
+    const FHitResult& SweepResult)
+{
+    if (!OtherActor) return;
+
+    if (HUDWidgetClass)
+    {
+        APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+        if (PlayerController)
+        {
+            UUserWidget* HUDWidget = CreateWidget<UUserWidget>(PlayerController, HUDWidgetClass);
+            if (HUDWidget)
+            {
+                HUDWidget->AddToViewport();
+            }
+
+            PlayerController->SetIgnoreMoveInput(true);
+            PlayerController->SetIgnoreLookInput(true);
+            PlayerController->bShowMouseCursor = true;
+            UKismetSystemLibrary::QuitGame(this, PlayerController, EQuitPreference::Quit, false);
+        }
+    }
+}
+```
+
+- 위젯을 만들고 OnOverlap이라는 함수를 통해 FinishZone에 닿았을때 게임오버가 출력되도록 만들었다.
+  - 타이머가 없어서 종료위젯없이 바로 종료되었다.
