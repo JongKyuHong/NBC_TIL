@@ -19,7 +19,7 @@ SpawnActor를 통해 임의 좌표에 여러개 배치하는 랜덤 스테이지
 
 - [x] 레벨 꾸미기 (시작/골인/대략적인 동선구성)
 - [x] GameMode, Default Map지정
-- [ ] C++ 클래스 만들기
+- [x] C++ 클래스 만들기
   - [x] MyCharacter 클래스
     - [x] IA, IMC 만들기
     - [x] Animation만들기
@@ -192,12 +192,12 @@ void AFinishZone::QuitGameDelayed()
 
 #### 순간이동, 사라지는 발판
 
-이동하는 발판에서 사라지는것을 구현하고, 회전하는 발판에서 순간이동을 구현하기로 하였다.
+회전하는 발판에서 사라지는것을 구현하고, 이동하는 발판에서 순간이동을 구현하기로 하였다.
 
 ##### 사라지는 발판
 
 ```c++
-// AMovingPlatform.h
+// ARotatingPlatform.h
 
 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
 bool bUseToggle = false;
@@ -208,38 +208,27 @@ float TimerDelay = 2.0f;
 UFUNCTION()
 void ToggleVisibility();
 
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
-bool IsStartLeft;
+FTimerHandle TimerHandle;
+bool bIsVisible;
 
-float MoveDirection;
+// ARotatingPlatform.cpp
 
-// AMovingPlatform.cpp
-
-void AMovingPlatform::BeginPlay()
+void ARotatingPlatform::BeginPlay()
 {
     Super::BeginPlay();
-
-    StartLocation = GetActorLocation();
-    MaxRange = StartLocation.X + 600.0f;
 
     if (bUseToggle) {
         GetWorld()->GetTimerManager().SetTimer(
             TimerHandle,
             this,
-            &AMovingPlatform::ToggleVisibility,
+            &ARotatingPlatform::ToggleVisibility,
             TimerDelay,
             true  // 반복
         );
     }
-
-    if (IsStartLeft) {
-        MoveDirection = -1.0f;
-    } else {
-        MoveDirection = 1.0f;
-    }
 }
 
-void AMovingPlatform::ToggleVisibility()
+void ARotatingPlatform::ToggleVisibility()
 {
     bIsVisible = !bIsVisible;
 
@@ -248,11 +237,55 @@ void AMovingPlatform::ToggleVisibility()
 }
 ```
 
-- bUseToggle : true일 경우 TimerDelay마다 발판이 사라지고 나타나기 반복
-- ToggleVisibility : 실제로 사라지고 나타나게 하는 함수
-- IsStartLeft : 기존 발판 이동방향을 블루프린트에서 정할 수 있게 만든 변수 true일 경우 왼쪽으로 먼저 이동
+- bUseToggle : true면 TimerDelay마다 발판 사라지고 나타나고 반복
 
-![](https://velog.velcdn.com/images/kyu_/post/3f7d81c7-575c-421f-acc7-bfba12d44af1/image.gif)
+![](https://velog.velcdn.com/images/kyu_/post/6c17be85-db62-4f26-8ce0-cd05821346cb/image.gif)
 
-- 뒤쪽발판은 buseToggle = true, IsStartLeft = false
-- 앞쪽발판은 buseToggle = false, IsStartLeft = true
+- 앞 회전 발판은 bUseToggle을 true로 지정하였다. (뒤 회전발판은 false)
+
+##### 순간이동 발판
+
+```c++
+// AMovingPlatform.h
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
+bool bUseTeleportMode = false;
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
+float TimerDelay = 2.0f;
+
+FTimerHandle TeleportTimerHandle;
+
+UFUNCTION()
+void TeleportToRandom();
+
+// AMovingPlatform.cpp
+
+void AMovingPlatform::BeginPlay()
+{
+    Super::BeginPlay();
+    ...
+
+    if (bUseTeleportMode) {
+    PrimaryActorTick.bCanEverTick = false;
+    GetWorld()->GetTimerManager().SetTimer(
+        TeleportTimerHandle,
+        this,
+        &AMovingPlatform::TeleportToRandom,
+        TimerDelay,
+        true
+    );
+    }
+}
+
+void AMovingPlatform::TeleportToRandom()
+{
+    float RandomX = StartLocation.X + FMath::RandRange(-MaxRange, MaxRange);
+    FVector RandomLocation(RandomX, StartLocation.Y, StartLocation.Z);
+
+    SetActorLocation(RandomLocation);
+}
+
+
+```
+
+- bUseTeleportMode : false면 기존처럼 Tick에서 이동, true면 텔레포트 모드
+  - TimerDelay마다 범위내에서 발판이 순간이동
