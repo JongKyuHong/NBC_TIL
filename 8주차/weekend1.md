@@ -29,7 +29,7 @@ SpawnActor를 통해 임의 좌표에 여러개 배치하는 랜덤 스테이지
   - [x] FinishZone
 - [x] C++ 클래스 구현
   - [x] C++ 클래스를 블루프린트로 상속하기
-    - [x] 각 클래스 완성 시 레벨에 배치하고 테스트
+  - [x] 기능하나마다 테스트 해보기
 
 --- 도전 과제 ---
 
@@ -70,8 +70,6 @@ SpawnActor를 통해 임의 좌표에 여러개 배치하는 랜덤 스테이지
 
 - 스태틱메시로는 별을 선택했고, 콜리전이 없어서 에셋에디터에서 Collision을 Use Complex Collision As Simple로 설정했다.
 - 발판이 회전하면서 캐릭터도 같이 돌아주기 때문에 캐릭터에서 GetCharacterMovement()->bIgnoreBaseRotation = true;로 주었다.
-
-#### MovingPlatform 만들기
 
 ##### 발판이 한쪽으로만 이동하는 문제
 
@@ -158,3 +156,103 @@ void AFinishZone::OnOverlap(
 
 - 위젯을 만들고 OnOverlap이라는 함수를 통해 FinishZone에 닿았을때 게임오버가 출력되도록 만들었다.
   - 타이머가 없어서 종료위젯없이 바로 종료되었다.
+
+### 타이머 구현하기
+
+```c++
+--- h ---
+
+// 타이머
+FTimerHandle QuitTimerHandle;
+
+UFUNCTION()
+void QuitGameDelayed();
+
+--- cpp ---
+
+GetWorld()->GetTimerManager().SetTimer(
+    QuitTimerHandle,
+    this,
+    &AFinishZone::QuitGameDelayed,
+    2.0f,
+    false // 반복없게끔
+);
+
+void AFinishZone::QuitGameDelayed()
+{
+    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+    UKismetSystemLibrary::QuitGame(this, PlayerController, EQuitPreference::Quit, false);
+}
+```
+
+- 헤더에서 FTimerHandle을 선언해주고 SetTimer의 인자로 넘겨줄 함수 선언
+- GetWorld()->GetTimerManager().SetTimer로 2초후 게임이 종료되게끔
+
+![](https://velog.velcdn.com/images/kyu_/post/1b293a48-4230-4c8d-8854-4a88c6d47dd8/image.gif)
+
+#### 순간이동, 사라지는 발판
+
+이동하는 발판에서 사라지는것을 구현하고, 회전하는 발판에서 순간이동을 구현하기로 하였다.
+
+##### 사라지는 발판
+
+```c++
+// AMovingPlatform.h
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
+bool bUseToggle = false;
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
+float TimerDelay = 2.0f;
+
+UFUNCTION()
+void ToggleVisibility();
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving")
+bool IsStartLeft;
+
+float MoveDirection;
+
+// AMovingPlatform.cpp
+
+void AMovingPlatform::BeginPlay()
+{
+    Super::BeginPlay();
+
+    StartLocation = GetActorLocation();
+    MaxRange = StartLocation.X + 600.0f;
+
+    if (bUseToggle) {
+        GetWorld()->GetTimerManager().SetTimer(
+            TimerHandle,
+            this,
+            &AMovingPlatform::ToggleVisibility,
+            TimerDelay,
+            true  // 반복
+        );
+    }
+
+    if (IsStartLeft) {
+        MoveDirection = -1.0f;
+    } else {
+        MoveDirection = 1.0f;
+    }
+}
+
+void AMovingPlatform::ToggleVisibility()
+{
+    bIsVisible = !bIsVisible;
+
+    SetActorHiddenInGame(!bIsVisible);
+    SetActorEnableCollision(bIsVisible);
+}
+```
+
+- bUseToggle : true일 경우 TimerDelay마다 발판이 사라지고 나타나기 반복
+- ToggleVisibility : 실제로 사라지고 나타나게 하는 함수
+- IsStartLeft : 기존 발판 이동방향을 블루프린트에서 정할 수 있게 만든 변수 true일 경우 왼쪽으로 먼저 이동
+
+![](https://velog.velcdn.com/images/kyu_/post/3f7d81c7-575c-421f-acc7-bfba12d44af1/image.gif)
+
+- 뒤쪽발판은 buseToggle = true, IsStartLeft = false
+- 앞쪽발판은 buseToggle = false, IsStartLeft = true
