@@ -228,6 +228,8 @@ void AMyPawn::Look(const FInputActionValue& Value)
     - 두번째 인자 : 최소값
     - 세번째 인자 : 최대값
 
+![](https://velog.velcdn.com/images/kyu_/post/a1bd8efc-f023-4a31-8379-e6dfbb7b0c4e/image.png)
+
 # 챌린지 반
 
 - 철권이라고 했을때 캐릭터의 상태가 뭐가있나??
@@ -367,5 +369,33 @@ int solution(vector<vector<string>> clothes) {
 
 # 총정리
 
+- 오전 코드카타 + 챌린지반
+- 오후 7번과제 필수과제까지
+
 - map을 단순히 == 연산자로 비교할 수 있는지 처음 알게 되었다.
   - map의 비교를 위해 value가 0이되면 erase로 바로 지워주었다.
+
+- 언리얼의 향상된 입력 시스템은 '서브시스템'이라는 매니저가 관리한다.
+- 플레이어의 로컬 환경에서 이 매니저를 찾아야만 키 매핑을 추가하고 제거할 수 있다.
+  - GetSubSystem
+- 벡터 정규화로 대각 이동이 빠르던 버그를 수정했다.
+  - 벡터의 크기를 1로 만듬
+- AddActorLocalOffset의 두번째 인자는 bSweep
+  - true : 충돌방해물이 있으면 멈춤, false : 그냥 진행
+- 좌표 제어
+  - Local Offset : 캐릭터가 바라보는 방향 기준
+  - World Offset : 세계의 절대적인 X,Y,Z축 기준
+- 입력과 월드의 좌표 차이
+  - 입력기준 : X(가로, D(+)/A(-)키) , Y(세로, W(+)/S(-)키)
+  - 월드기준 : X(Forward, 앞/뒤 -> W(+)/S(-)키), Y(Right, 오른쪽/왼쪽 -> D(+)/A(-)), Z축(Up, 위(+)/아래(-))
+  - 입력의 Y를 월드의 X에 넣어주었다.
+
+- 왼손 좌표계
+  - 엄지 Z (Yaw의 축), 검지 X (Roll의 축), 중지 Y(Pitch의 축)
+  - ![](https://velog.velcdn.com/images/kyu_/post/b3759bb3-3d2f-4662-be1e-2463b9422a07/image.png)
+
+- ClampAngle
+  - 각도를 특정 범위내에서 고정
+  - 첫번째인자 : 입력
+  - 두번째 인자 : 최소값
+  - 세번째 인자 : 최대값
