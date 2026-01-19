@@ -33,8 +33,8 @@ SpawnActor를 통해 임의 좌표에 여러개 배치하는 랜덤 스테이지
 
 --- 도전 과제 ---
 
-- [ ] 타이머를 통해서 발판 사라지고 주기적으로 이동하는거 구현
-- [ ] 랜덤하게 발판 배치되는 랜덤퍼즐 생성해보기
+- [x] 타이머를 통해서 발판 사라지고 주기적으로 이동하는거 구현
+- [x] 랜덤하게 발판 배치되는 랜덤퍼즐 생성해보기
 
 --- 과제를 끝내며 ---
 
@@ -289,3 +289,97 @@ void AMovingPlatform::TeleportToRandom()
 
 - bUseTeleportMode : false면 기존처럼 Tick에서 이동, true면 텔레포트 모드
   - TimerDelay마다 범위내에서 발판이 순간이동
+
+### 발판 랜덤스폰
+
+```c++
+UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
+TArray<TSubclassOf<ARotatingPlatform>> PlatformClasses;
+
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+float TimerDelay;
+
+UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
+TArray<ARotatingPlatform*> SpawnedPlatforms;
+
+UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
+int32 SpawnCount;
+
+FTimerHandle TimerHandle;
+
+UFUNCTION(BlueprintCallable, Category = "Spawning")
+void SpawnRandomPlatforms();
+
+FVector GetRandomPointInVolume() const;
+
+// SpawnVolume.cpp
+
+void ASpawnVolume::BeginPlay()
+{
+	Super::BeginPlay();
+
+    SpawnRandomPlatforms();
+
+    GetWorldTimerManager().SetTimer(
+        TimerHandle,
+        this,
+        &ASpawnVolume::SpawnRandomPlatforms,
+        TimerDelay,
+        true
+    );
+}
+
+void ASpawnVolume::SpawnRandomPlatforms()
+{
+    for (ARotatingPlatform* Platform : SpawnedPlatforms)
+    {
+        if (Platform && Platform->IsValidLowLevel())
+        {
+            Platform->Destroy();
+        }
+    }
+    SpawnedPlatforms.Empty();
+
+    for (int32 i = 0; i < SpawnCount; ++i)
+    {
+        int32 RandomIndex = FMath::RandRange(0, PlatformClasses.Num() - 1);
+        TSubclassOf<ARotatingPlatform> SelectedClass = PlatformClasses[RandomIndex];
+
+        if (!SelectedClass) continue;
+
+        FVector SpawnLocation = GetRandomPointInVolume();
+        ARotatingPlatform* SpawnedPlatform = GetWorld()->SpawnActor<ARotatingPlatform>(
+            SelectedClass, SpawnLocation, FRotator::ZeroRotator,
+            FActorSpawnParameters()
+        );
+
+        if (SpawnedPlatform)
+        {
+            SpawnedPlatform->bUseToggle = FMath::RandBool();
+            if (SpawnedPlatform->bUseToggle) {
+                SpawnedPlatform->TimerDelay = FMath::RandRange(1.0f, 3.0f);
+            }
+            SpawnedPlatform->RotationSpeed = FMath::RandRange(50.0f, 200.0f);
+
+            SpawnedPlatforms.Add(SpawnedPlatform);
+        }
+    }
+}
+
+FVector ASpawnVolume::GetRandomPointInVolume() const
+{
+    FVector Origin = SpawningBox->GetComponentLocation();
+    FVector BoxExtent = SpawningBox->GetScaledBoxExtent();
+
+    return FVector(
+        FMath::RandRange(Origin.X - BoxExtent.X, Origin.X + BoxExtent.X),
+        FMath::RandRange(Origin.Y - BoxExtent.Y, Origin.Y + BoxExtent.Y),
+        FMath::RandRange(Origin.Z - BoxExtent.Z, Origin.Z + BoxExtent.Z)
+    );
+}
+```
+
+- PlatformClasses : 스폰될 플랫폼들 블루프린트에서 지정
+- SpawnedPlatforms : 스폰된 플랫폼들을 저장해놓음, 다음 랜덤 플랫폼들이 스폰될때 Destroy하기 위함
+- SpawnCount : 스폰될 발판 수
+- SpawnRandomPlatforms : 기존 발판 삭제하고 다시 랜덤위치 재생성
