@@ -94,3 +94,28 @@ void AFlyingPawn::MoveUp(const FInputActionValue& Value)
 
 - Space를 누르면 상승 ThrustStrength 추진력을 이용해서 VerticalVelocty에 더함 (나중에 Tick에서 중력과 함께 계산됨)
 - 하강 속도는 -2000, 상승은 1500으로 제한
+
+# 복습
+
+```c++
+Collision->OnComponentBeginOverlap.AddDynamic(this, &ABaseItem::OnItemOverLap);
+Collision->OnComponentEndOverlap.AddDynamic(this, &ABaseItem::OnItemEndOverLap);
+```
+
+- OnComponentBeginOverlap : 닿는 순간의 알람
+  - 두 물체의 충돌 영역이 처음으로 겹쳐지는 프레임에 한 번 발생
+  - 아이템 획득, 함정 발동, 지뢰, 문 열기 등에 사용
+  - FHitResult같은 충돌 지점 정보를 보내줌
+
+- OnComponentEndOverlap : 떨어지는 순간 알람
+  - 겹쳐있던 두 물체가 서로 완전히 떨어지는 프레임에 발생한다.
+  - 상호작용 메시지 숨기기, 구역 이탈, 퍼즐
+  - 이미 떨어졌기때문에 FHitResult같은거는 안주지만 누가 나갔는가 OtherActor정보는 준다.
+
+# 궁금한거 모음
+
+## 오버랩 바인딩시 왜 AddDynamic을 쓰는가??
+
+- OnComponentBeginOverlap, OnComponentEndOverlap은 언리얼의 `멀티캐스트 델리게이트`라는 시스템으로 되어있다.
+  - 멀티캐스트: "이 알람이 울릴 때 실행될 함수를 여러 개 등록할 수 있다"
+  - AddDynamic : "이 함수를 알람 리스트에 추가하겠다"
