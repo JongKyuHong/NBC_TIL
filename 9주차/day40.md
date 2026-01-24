@@ -1,5 +1,70 @@
 ![](https://velog.velcdn.com/images/kyu_/post/af4c499b-5bda-404d-bb8f-a58d9ae02511/image.png)
 
+# 복습
+
+## 매핑
+
+```c++
+if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+{
+	if (AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetController()))
+	{
+		if (PlayerController->MoveAction)
+		{
+			EnhancedInput->BindAction(
+				PlayerController->MoveAction,
+				ETriggerEvent::Triggered,
+				this,
+				&AMyCharacter::Move
+			);
+		}
+    }
+}
+```
+
+- PlayerInputComponent를 향상된 인풋 시스템으로 캐스팅함
+- GetController로 플레이어 컨트롤러를 가져옴
+- PlayerController의 액션과 함수를 매핑
+
+## 이동
+
+```c++
+const FVector2D MoveInput = value.Get<FVector2D>();
+
+if (!FMath::IsNearlyZero(MoveInput.X))
+{
+	AddMovementInput(GetActorForwardVector(), MoveInput.X);
+}
+
+if (!FMath::IsNearlyZero(MoveInput.Y))
+{
+	AddMovementInput(GetActorRightVector(), MoveInput.Y);
+}
+```
+
+## Look
+
+```c++
+FVector2D LookInput = value.Get<FVector2D>();
+
+AddControllerYawInput(LookInput.X);
+AddControllerPitchInput(LookInput.Y);
+```
+
+- AddControllerYawInput, AddControllerPitchInput으로 시점 변경
+- AddMovementInput으로 이동
+
+## Sprint
+
+```c++
+if (GetCharacterMovement())
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+}
+```
+
+-CharacterMovementComponent는 캐릭터가 공중에 떠 있는지, 바닥에 닿아 있는지, 현재 속도는 얼마인지 등을 계산하는 아주 복잡한 수학적 로직이 들어있는 컴포넌트
+
 # 게임수학
 
 ## 삼각함수
