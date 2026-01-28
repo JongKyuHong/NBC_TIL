@@ -1,3 +1,5 @@
+![](https://velog.velcdn.com/images/kyu_/post/b30ea651-5583-445c-8c68-34f649bd695b/image.png)
+
 # Unreal C++강의
 
 ## Build.cs
@@ -87,6 +89,23 @@ if (MyGameState)
 
 - 이는 플레이어 컨트롤러에서 AddToViewport로 Instance정보를 띄워주고 한번 초기화해주는 작업이다.
 - 이 코드가 없으면 초기값설정해놓은게 잠깐 보일 수가 있어서 실제 게임 정보로 바로 초기화 해주는것
+
+## 파티클
+
+### SpawnEmitterAtLocation
+
+- 이펙트를 소환할 때 가장 자주 사용하는 함수
+- 특정 위치에 파티클을 딱 한번만 생성하고 싶을때 사용한다.
+
+```c++
+Particle = UGameplayStatics::SpawnEmitterAtLocation(
+    GetWorld(), // 파티클이 소환될 세계
+    PickupParticle, // 헤더에서 UParticleSystem*으로 지정한 파티클 에셋
+    GetActorLocation(), // 어디에 소환할지
+    GetActorRotation(), // 어떤 회전값을 가지고 소환될지
+    true // 파티클 재생이 끝나면 메모리에서 자동으로 지울지 결정
+);
+```
 
 # 특강
 
@@ -409,3 +428,64 @@ dq.erase(dq.begin() + index);
 dq.clear();
 dq.size();
 dq.empty();
+
+# 트러블 슈팅
+
+## 지뢰
+
+!youtube[wNoHWBkumMo?si=rotr8xbr6yb2rQt1]
+
+- 지뢰에 닿았을때 2초뒤에 지뢰가 폭발하는데 2초안에 다시 닿으면 타이머가 다시 2초를 세기 시작하는 버그
+
+### 해결
+
+```c++
+void AMineItem::ActivateItem(AActor* Activator)
+{
+	// 이미 작동하고 있으면 무시
+	if (bHasExploded)
+	{
+		return;
+	}
+
+    ..기존로직..
+}
+```
+
+- MineItem에 중복을 무시하는 조건문을 넣어서 해결하였다.
+
+!youtube[mfVu901dzNQ?si=ezJEgGS1R0syjlw8]
+
+# 총 정리
+
+## Build.cs
+
+- Build.cs에는 프로젝트에 필수적으로 사용하는 기능들을 넣는다.
+- UMG는 HUD를 사용하기 위해 필요하다.
+
+## HUD
+
+- HUDWidgetClass는 어떤 UI를 만들지 결정하는 클래스, 붕어빵 틀
+- HUDWidgetInstance는 실제 객체를 담는곳
+
+## 파티클
+
+- SpawnEmitterAtLocation은 어떤세계, 어떤파티클을 어느곳에 어떤 회전값으로 보여줄지 결정, 자주쓰는 함수
+
+## CI/CD
+
+- Cook Content : 리소스를 쿠킹함, 리소스를 쿠킹한다는것은 최적화하는것을 말함
+- check, verify, ensure등이 있다. 꼭 F5로 디버거를 같이 들고 실행하자
+- 언리얼에서 프로파일링 가능, 메모리 추가하려면 별도의 커맨드 입력, GC는 절대 사용시기를 제어하지말자
+
+## 알고리즘
+
+- 행렬 회전시 모든지점의 꼭짓점을 저장하지말고 한곳만 저장하고 역방향으로 돌리자
+- 알고리즘 문제풀때 먼저 완탐, 그리디를 의심해보자
+- 오늘 헷갈린거는
+  - vector.erase(vector.begin()) 이안에 이터레이터 넣어야 하는것정도 헷갈린듯
+
+## 끝으로
+
+- 자주쓰는 알고리즘 메서드들은 매일 타이핑해서 외우자
+- 생각하면서 타이핑을 많이 하자 아직 언리얼 C++코드가 익숙하지 않은느낌이 많이든다.
