@@ -1,3 +1,23 @@
+# 8번과제
+
+## 데이터 에셋 만들기
+
+- PerkDataAsset.h을 만듬
+- EPerkRarity : 특성 등급을 정의, 지금 뽑힌게 무엇인지 아는 역할
+- FPerkInfo : 개별 특성 정보 담기
+- FPerkRollResult : 뽑힌 등급과 랜덤으로 뽑힌 개별 특성 목록
+- FPerkRarityValues : 특성등급 배율 넣어놓음
+
+## GAS
+
+- 캐릭터의 스텟을 관리
+- GameEffect와 연결하려고 함
+
+## PerkManager
+
+- 단순히 어떤 등급을 뽑을지 랜덤값 돌리기
+- 특성 3개 뽑기 역할
+
 # 챌린지반
 
 ## GAS
@@ -84,3 +104,76 @@
 - None : 중첩 가능, 독지역에 두번들어가면 두번적용
 - Aggregate by Source : 소스별 1개, 적 A의 독, 적B의독 따로
 - Aggregate by Target : 타겟당 1개, 독1개만 (새로걸면 갱신, 타겟 즉 맞는사람 기준)
+
+# 코드카타
+
+## 배달
+
+- [문제](https://school.programmers.co.kr/learn/courses/30/lessons/12978)
+
+```c++
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <iostream>
+
+using namespace std;
+
+void dijkstra(vector<vector<pair<int, int>>>& vec, vector<int>& dist){
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    dist[1] = 0;
+    pq.push({0, 1});
+    while (!pq.empty()){
+        int d = pq.top().first;
+        int v = pq.top().second;
+        pq.pop();
+
+        if (dist[v] < d) continue;
+
+        for (auto& node : vec[v]){
+            int next = node.first;
+            int nextDist = node.second;
+
+            int newDist = d+nextDist;
+            if (newDist < dist[next]){
+                dist[next] = newDist;
+                pq.push({newDist, next});
+            }
+        }
+    }
+
+}
+
+int solution(int N, vector<vector<int> > road, int K) {
+    int answer = 0;
+
+    vector<vector<pair<int, int>>> vec(N+1);
+
+    for (const auto& r : road){
+        int start = r[0];
+        int end = r[1];
+        int d = r[2];
+
+        vec[start].push_back({end, d});
+        vec[end].push_back({start, d});
+    }
+
+    vector<int> dist(N+1, 500001);
+
+    dijkstra(vec, dist);
+
+    for (int i = 1; i < dist.size(); i++){
+        if (dist[i] <= K){
+            // cout << i << endl;
+            answer++;
+        }
+    }
+
+    return answer;
+}
+```
+
+- 오랜만에 만난 다익스트라 문제
+- 시작점이 1번이라고 있고, 다른 모든 정점까지 가는 최단거리를 구하기 때문에 다익스트라를 썼다.
+- dist벡터를 초기화할때 문제조건에서 K가 50만까지라고 해서 50만+1로 설정했다. (원래는 무한대로 설정)
+- 거리를 계속해서 갱신하며 최단거리를 찾는다.
