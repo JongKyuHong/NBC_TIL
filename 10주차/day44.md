@@ -1,3 +1,5 @@
+![](https://velog.velcdn.com/images/kyu_/post/c302e357-0382-4d7c-ba52-a8d7d553c6d5/image.png)
+
 # 8번과제
 
 ## 데이터 에셋 만들기
@@ -177,3 +179,29 @@ int solution(int N, vector<vector<int> > road, int K) {
 - 시작점이 1번이라고 있고, 다른 모든 정점까지 가는 최단거리를 구하기 때문에 다익스트라를 썼다.
 - dist벡터를 초기화할때 문제조건에서 K가 50만까지라고 해서 50만+1로 설정했다. (원래는 무한대로 설정)
 - 거리를 계속해서 갱신하며 최단거리를 찾는다.
+
+# 총 정리
+
+## GAS
+
+- 캐릭터 스텟 관리
+- ACS : Ability System Component(GAS의 중심)
+- 직접 수정하지말고 Gameplay Effect를 쓰자
+
+## 알고리즘
+
+- 다익스트라 사용법 익히기
+
+## 과제
+
+- GAS활용
+- Data Asset 사용해보기
+- PerkManager로 책임 분리
+- 블루프린트 + HUD로 화면에 특성 카드 띄우기
+
+## 내일 할일
+
+- 특성카드에 색상, 이미지 추가하기
+- 실제로 선택했을때 캐릭터에게 스텟 부여되기
+- 코드카타
+- TA반 이전강의/이번강의 교안 한번 읽어보기
