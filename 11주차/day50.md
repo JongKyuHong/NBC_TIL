@@ -101,3 +101,44 @@ vector<double> solution(int k, vector<vector<int>> ranges) {
   - map은 이진 탐색트리 기반이고 키를 비교할때 < 연산자 사용
   - unordered_map은 해시 테이블 기반, std에서 std::pair에 대한 기본 해시 함수를 제공하지 않아서 키로 쓸 수 없다.
   - 두 map이 기반이 같고 정렬되고 안되고 차이정도인줄 알았는데 기반자체가 다른줄은 몰랐다.
+
+## 디펜스게임
+
+- [디펜스게임](https://school.programmers.co.kr/learn/courses/30/lessons/142085)
+
+```c++
+#include <string>
+#include <vector>
+#include <queue>
+#include <iostream>
+
+using namespace std;
+
+int solution(int n, int k, vector<int> enemy) {
+    int answer = 0;
+
+    priority_queue<int> pq;
+    int remain = n;
+    int i = 0;
+    while (i < enemy.size()){
+        pq.push(enemy[i]);
+        remain -= enemy[i];
+        if (remain < 0){
+            if (k <= 0){
+                break;
+            }
+            k -= 1;
+            remain += pq.top();
+            pq.pop();
+        }
+        i++;
+    }
+
+    return i;
+}
+```
+
+- 무적권이 있고 무적권을 적절하게 사용해서 적을 몇명 막을수있나 이런 문제였다.
+- if (remain < 0) 이부분, 병사가 몇명 남았느지 확인하는 부분에서 remain <= 0을 해서 만약 병사 수가 딱 0명이 되었을때도 실제로는 해당 라운드를 클리어 한거지만 <=라고 조건을 걸어서 클리어하지 못한 상태로 처리가 되고있었다.
+  - < 등호를 빼서 해결했는데 이 부분 찾는데만 20분넘게 걸린듯
+  - 막히면 뇌를 좀 리프레시하고 다시 문제를 처음만난것처럼 새롭게 시작하는게 중요한거같다.
