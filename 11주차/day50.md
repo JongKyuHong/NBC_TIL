@@ -1,6 +1,69 @@
-#
+# 8번과제 해설 코드 분석
 
-### TObjectPtr
+## 목표
+
+- 프로젝트의 전반적인 구조, 코드 분석을 통해 이번 팀프로젝트에 활용할 계획
+- 특히 스텟관리 부분에서 GAS를 쓸 수 없으므로 어떤식으로 구현하는게 나을지 튜터님의 코드를 보고 활용하려고 한다.
+
+## 문서
+
+### 에셋 네이밍
+
+- Content/ 아래에 바로 에셋폴더를 넣지말고 Content/프로젝트명/ 아래에 넣자
+- 글로벌 네임스페이스를 더럽히지 말자
+
+### 클래스별 용도
+
+- GameInstance : 레벨 전환에도 유지, 전역 데이터 보관
+- GameMode : 게임 규칙 정의
+- GameState : GameMode에서 생성, 경과 시간, 팀 스코어, 매치 상태, PlayerState 배열 보유
+- PlayerController : 입력 수신/처리, Possess, HUD/UI관리, 카메라 제어
+- PlayerState : 개별 플레이어 공개 정보, 이름/스코어/팀/Ping 등
+
+### Format
+
+- TEXT보다는 FString::Format사용
+
+```c++
+FString Msg = FString::Format(
+    TEXT("{0}: {1}레벨, 데미지 {2}"),
+    { PlayerName, Level, Damage }  // FString, int, float 혼합
+);
+```
+
+### Best Practice
+
+- FSM(상태 머신) : 게임 흐름을 `Begin -> Progress -> End -> Intermission` 상태로 분리, 각 상태 클래스가 자신의 로직만 담당하여 유지보수가 쉬움
+- GameMode/State분리 : 규칙, 공유 정보 역할을 명확하게 나누기
+- 데이터 테이블 개선 : 한 엑셀 파일에서 대량 편집 가능하도록 스키마 변경
+- 버프 컴포넌트 : 캐릭터에 붙이는 컴포넌트로 버프 관리, 중첩/해제 로직이 분리되어 새 버프 추가가 간단
+- BindWidget 메타 태그 : `meta = (BindWidget)`으로 위젯 자동 바인딩
+
+## 분석
+
+### GameInstance
+
+#### Init()
+
+- GameInstance가 준비될때 호출
+- 생성자는 객체가 만들어지는 순간이에 돌고, Init()은 서브 시스템 초기화, 데이터 테이블 로드같은 전역 서비스 준비를 둠
+
+### UGameInstanceSubsystem
+
+- GameInstance에 붙어서 전역 서비스(매니저) 객체
+- GameInstance가 비대해지는것을 막고, 기능을 모듈(Subsystem)으로 분리하는 역할
+
+#### 사용처
+
+- 세이브/로드 관리
+- 데이터 테이블/데이터 에셋 로딩 및 캐싱
+- 로그, 통계, 설정(옵션) 관리
+- 전역 UI흐름(로딩 화면 같은) 관리
+- 온라인 세션/매치메이킹 관리
+
+# 개념
+
+## TObjectPtr
 
 - UObject 멤버 변수를 안전하게 들고 있기 위한 UE5용 포인터 래퍼
 - GC/리플렉션/직렬화(세이브, 로드, 에디터 노출) 흐름에 더 잘맞게 UObject 참조를 표현하는데 있다.
