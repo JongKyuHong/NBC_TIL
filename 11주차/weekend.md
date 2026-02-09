@@ -177,7 +177,6 @@ void UGA_MeleeAttack::OnMontageCompleted()
 - Task는 그냥 생성하고 활성화 하면 된다.
 - 직접삭제하면 안됨, 알아서 EndAbility()에서 정리됨
 
-
 ## 결론
 
 Gameplay Ability, Gameplay Event를 쓰면 기존처럼 BP_Character에다가 AnimMontage를 직접 연결해줄 필요가 없다.
@@ -188,7 +187,7 @@ Ability에서 어떤 태그가 디폴트인지, 뭐 Require, Blocked같은거 �
 
 - 애니메이션 타임라인에 커스텀 Notify달아줌
 - BP에서 설정해줌
-![](https://velog.velcdn.com/images/kyu_/post/0afd1afa-da58-4031-9404-6a2c40f6e5f3/image.png)
+  ![](https://velog.velcdn.com/images/kyu_/post/0afd1afa-da58-4031-9404-6a2c40f6e5f3/image.png)
 
 - Received Notify (mesh Comp로 get Owner) -> 캐릭터 연결 -> Send Gameplay Event to Actor (Event Tag연결) -> Return Node
 - 흐름 : 애니메이션 재생 중 특정 타임라인에서 커스텀 Notify발생 -> Notify가 캐릭터에게 신호를 보냄(나 발생했음!) -> 캐릭터가 이 신호를 받아서 Gamepla Event를 발생시킴 -> GAS Ability가 이 이벤트를 기다리고 있음 -> 자동 실행
