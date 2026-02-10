@@ -1,3 +1,38 @@
+# 프로젝트
+
+## git lfs lock
+
+### lock을 히는 이유
+
+- git lfs lock 거는 이유 : 여러 사람이 하나의 uasset이나 umap을 수정하면 꼬일 수있음 lock을 걸면 한사람만 수정가능
+
+### lock하는 방법
+
+![](https://velog.velcdn.com/images/kyu_/post/fa8165fb-03f2-408f-8bf6-5c0bcd3f8400/image.png)
+
+- git fork 우상단 콘솔 클릭
+
+![](https://velog.velcdn.com/images/kyu_/post/be57f3d0-0a75-4469-a70b-d31cc649be45/image.png)
+
+- git lfs lock 경로.uasset
+
+- lock을 걸고 작업 -> commit -> git lfs unlock 경로.uasset 으로 unlock해주기
+
+#### 경로 얻는법
+
+![](https://velog.velcdn.com/images/kyu_/post/698e2d71-474d-4b1c-acfd-7ee6d8d0b990/image.png)
+
+- 해당 에셋에서 우클릭 -> copy file path
+
+![](https://velog.velcdn.com/images/kyu_/post/cb3dc7fa-4f71-400c-8812-f8b65e2a4dd9/image.png)
+
+- save시 copy file path
+
+### unlock할때
+
+![](https://velog.velcdn.com/images/kyu_/post/09e8f4d3-6e2c-41b6-a85c-739edf4585e5/image.png)
+
+
 # 코드카타
 
 ## NQueen
