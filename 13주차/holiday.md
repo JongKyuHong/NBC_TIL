@@ -24,3 +24,5 @@ void APlayerCharacter::OnAttackStarted(const FInputActionValue& Value)
 
 - C++클래스를 직접 호출하면 로직이 바뀔때마다 C++ 코드를 수정해야 한다.
 - 하지만 태그방식을 사용하면 나중에 기획자나 비 개발자가 블루프린트로 새로운 어빌리티를 만들고 태그만 붙여주면 C++코드를 한줄도 안바꾸고 어빌리티를 교체할 수 있다.
+
+### d
