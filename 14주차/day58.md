@@ -224,11 +224,6 @@ allowfullscreen></iframe>
 
 ![](https://velog.velcdn.com/images/kyu_/post/e6ad4aec-c463-4d45-9f01-9051be0a5661/image.png)
 
-
-
-
-
-
 # 튜터님 피드백
 
 ## 불필요한 중복 제거
