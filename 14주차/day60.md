@@ -4,7 +4,6 @@
 
 https://velog.io/@kyu_/GAS-%EC%96%B4%EB%B9%8C%EB%A6%AC%ED%8B%B0-%ED%83%9C%EA%B7%B8-%EC%A0%9C%EC%96%B4
 
-
 # 팀프로젝트
 
 # Death 기능
@@ -28,7 +27,7 @@ if (DamageValue <= 0.f) return;
 const float NewHealth = FMath::Clamp(GetHealth() - DamageValue, 0.0f, GetMaxHealth());
 SetHealth(NewHealth);
 
-// 데미지를 받고서 피가 0이상이면 피격효과 
+// 데미지를 받고서 피가 0이상이면 피격효과
 HandleHitReaction(DamageValue);
 
 // 피가 0 이하면 사망로직
@@ -50,9 +49,9 @@ void UCharacterAttributeSet::HandleDeath()
     ASC->TryActivateAbilitiesByTag(AbilityTags);
 }
 ```
+
 - 우선 GetOwningAbilitySystemComponent를 통해 ASC를 가져온다.
 - Ability.Player.Death를 가진 GA를 찾아서 실행시켜준다.
-
 
 ## GA_Death
 
@@ -64,16 +63,15 @@ void UCharacterAttributeSet::HandleDeath()
 UGA_Death::UGA_Death()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	
+
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Player.Death")));
-	
+
 	CancelAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability")));
 	ActivationOwnedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("State.Player.Death")));
 }
 ```
 
 - 아래쪽은 기존 GA와 비슷하게 PlayMontageAndWait으로 Montage를 실행해주었다.
-
 
 ## 에디터 설정
 
@@ -90,7 +88,6 @@ UGA_Death::UGA_Death()
 - Duration은 Infinite로 설정
 - Grant Tag를 State.Player.Death로 설정해서 이 GE_Death를 실행중에 캐릭터에게 State.Player.Death 즉 죽었다는 태그를 달아주기 위함
 - 혹시 몰라서 Health도 override로 0으로 설정해주었다.
-
 
 ### BP_GA_Death 설정
 
@@ -111,16 +108,14 @@ allowfullscreen></iframe>
 2. 앉은상태에서도 일어나서 죽는 모션이 어색하다.
 3. 엎드리기도 마찬가지
 
-
 ## 캐릭터가 움직이는 문제
-
 
 ```c++
 void APlayerCharacter::Move(const FInputActionValue& value)
 {
     if (!AbilitySystemComponent) return;
     if (!Controller) return;
-    
+
     // 장전 중, 엎드린상태에서 공격중에는 움직일 수 없음
     FGameplayTag ReloadingTag = FGameplayTag::RequestGameplayTag(FName("State.Player.IsReloading"));
     FGameplayTag AttackingTag = FGameplayTag::RequestGameplayTag(FName("State.Player.IsAttacking"));
@@ -131,7 +126,7 @@ void APlayerCharacter::Move(const FInputActionValue& value)
     const bool bIsAttacking = AbilitySystemComponent->HasMatchingGameplayTag(AttackingTag);
     const bool bIsProning   = AbilitySystemComponent->HasMatchingGameplayTag(ProneTag);
     const bool bIsDeath   = AbilitySystemComponent->HasMatchingGameplayTag(DeathTag);
-    
+
     if (bIsReloading || (bIsAttacking && bIsProning) || bIsDeath) return;
 ```
 
@@ -143,7 +138,6 @@ src="https://www.youtube.com/embed/y73axJGlE2I"
 title="YouTube video player" frameborder="0"
 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 allowfullscreen></iframe>
-
 
 ## 앉은상태, 엎드린상태일때 모션 추가
 
@@ -158,7 +152,7 @@ void UCharacterAttributeSet::HandleDeath()
     if (!ASC) return;
     FGameplayEventData Payload;
     Payload.EventTag = FGameplayTag::RequestGameplayTag(FName("Ability.Player.Death"));
-    
+
     if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Player.IsCrouching"))))
     {
         Payload.EventMagnitude = 1.0f;
@@ -183,22 +177,22 @@ void UCharacterAttributeSet::HandleDeath()
 
 ```c++
 void UGA_Death::ActivateAbility(
-	const FGameplayAbilitySpecHandle Handle, 
+	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, 
+	const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
 	if (!TriggerEventData)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+
 	float StateValue = TriggerEventData->EventMagnitude;
 	UAnimMontage* SelectedMontage = DeathMontage;
-	
+
 	if (StateValue == 1.0f)
 	{
     	SelectedMontage = CrouchDeathMontage;
@@ -208,7 +202,7 @@ void UGA_Death::ActivateAbility(
 		SelectedMontage = ProneDeathMontage;
 	}
 
-	UAbilityTask_PlayMontageAndWait* PlayMontageTask = 
+	UAbilityTask_PlayMontageAndWait* PlayMontageTask =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this,
 		NAME_None,
@@ -269,7 +263,7 @@ if (!DeathEffectClass)
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+
 	// 추후에 누가 죽였는지 필요하면 작성하고 우선은 빼두자
 	// FGameplayEffectContextHandle EffectContext = MakeEffectContext(Handle, ActorInfo);
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DeathEffectClass, GetAbilityLevel());
@@ -325,6 +319,5 @@ allowfullscreen></iframe>
 ## GA수정
 
 - GA의 AcitvateAbility에서 유효성검사 수정
-  - 그냥 return해주던 부분에 EndAbility추가 
+  - 그냥 return해주던 부분에 EndAbility추가
   - EndAbility를 추가하지 않으면 어빌리티가 끝나지 않고 루프될수도 있다.
-  
