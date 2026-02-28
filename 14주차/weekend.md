@@ -1,0 +1,8 @@
+- Physical Material만듬
+- 재질에다가 Metal달아줌
+- 머티리얼 까지 수정하는 경우도
+- Notify달아줌 발에맞춰서
+- 원래 노가다 안하려고 했는데 Animation Modifier쓰다가 Track엄청많이 생기는 불상사 생겨서 후퇴
+- GameplayEffect C++은 다 삭제
+- 맵에 상호작용하는 요소들많아서 상호작용도 E키로 바꿔야할듯
+- 상호작용애들 firstPerson으로 되어있는데 우리 캐릭터로 바꿔주기
