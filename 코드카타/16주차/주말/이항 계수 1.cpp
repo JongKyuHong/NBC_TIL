@@ -1,0 +1,21 @@
+// https://www.acmicpc.net/problem/11050
+
+#include <iostream>
+
+using namespace std;
+
+int comb(int n, int k) {
+    if (n == k || k == 0) return 1;
+    return comb(n-1, k-1) + comb(n-1, k);
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+   
+    int N, K;
+    cin >> N >> K;
+    cout << comb(N, K);
+
+    return 0;
+}
