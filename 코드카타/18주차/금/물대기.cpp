@@ -15,19 +15,12 @@ int main()
     cin >> N;
     
     // 직접 우물파는 비용
-    int minIndex = -1;
-    int minValue = 100001;
     vector<int> costs; 
     for (int i = 0; i < N; i++)
     {
         int W;
         cin >> W;
         costs.push_back(W);
-        if (minValue > W)
-        {
-            minValue = W;
-            minIndex = i;
-        }
     }
     
     vector<vector<int>> vec(N, vector<int>(N));
