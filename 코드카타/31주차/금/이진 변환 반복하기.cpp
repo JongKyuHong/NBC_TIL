@@ -25,3 +25,9 @@ vector<int> solution(string s) {
     
     return {transformCount, zeroCount};
 }
+
+
+인런 진입할때 A라는 바디 파츠장착 후 진입
+인런중에 B라는 다른 바디 파츠로 교체
+다시 아웃런으로 돌아왔을때 B파츠 말고 A파츠로 돌아와야 하는지
+
