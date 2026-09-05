@@ -279,7 +279,7 @@ int* number = CreateNumber();
 
 ---
 
-## 3일차
+# 3일차
 
 ## 목표
 
@@ -361,3 +361,248 @@ void B(int* p)
 }
 
 ```
+
+---
+
+# 4일차
+
+## 목표
+
+> 레퍼런스를 이해한다.
+
+---
+
+## 레퍼런스
+
+```c++
+int hp = 100;
+int& ref = hp;
+```
+
+hp -> 원래 int객체
+ref -> hp객체를 참조하는 reference
+중요한건 ref는 별도의 int값 복사본이 아니다. 그냥 별칭같은거임
+
+레퍼런스는 생성시 반드시 초기화해줘야함
+레퍼런스는 한번 지정하면 대상을 못바꿈, 포인터는 가능
+
+---
+
+## 포인터 전달과 레퍼런스 전달
+
+```c++
+void Damage(int* hp)
+{
+    *hp -= 10;
+}
+Damage(&playerHp);
+
+void Damage2(int& hp)
+{
+    hp -= 10;
+}
+Damage2(playerHp);
+```
+
+둘다 객체 수정이 가능하다. 차이는 인터페이스에 있는데
+Pointer버전은 Damage(nullptr)이 들어올 수 있다.
+레퍼런스 버전은 일반적으로 이 함수는 유효한 int 객체를 받아야 한다는 의도가 더 강하다
+
+---
+
+## Dangling Reference
+
+```c++
+int& GetNumber()
+{
+    int x = 100;
+    return x;
+}
+```
+
+이 코드는 문제가 있다. x는 지역 객체다.
+함수가 끝나면 x의 LifeTime이 종료된다. 그래서
+int& ref = GetNumber();
+하면 ref는 이미 수명이 끝난 객체를 참조하게 된다 이를 Dangling Reference라고 한다.
+ref를 읽는건 Undefined Behavior
+
+---
+
+## 레퍼런스는 실제로 메모리를 전혀 안먹는가?
+
+언어수준에서는 레퍼런스를 기존 객체를 참조하는 별칭정도로 기억하면 된다.
+
+하지만 컴파일러가 내부적으로 레퍼런스를 구현할 때 주소를 저장하는 식으로 구현할 수 있다.
+
+```c++
+struct Test
+{
+    int& ref;
+}
+```
+
+같은 경우 실제 객체 크기에 Reference를 구현하기 위한 저장 공간이 반영되는 경우가 있다.
+따라서
+
+> 레퍼런스는 무조건 메모리를 차지하지 않는다 라고 단정하면 안됨
+
+---
+
+# 5일차
+
+## 목표
+
+> const 포인터 구분하기
+
+---
+
+## const Reference
+
+```c++
+int hp = 100;
+const int& ref = hp;
+```
+
+ref = 50하면 에러, 왜냐면 ref가 const int\*에 대한 레퍼런스라서
+hp = 50은 가능하다
+
+---
+
+## const Pointer
+
+```
+int a = 10;
+int b = 20;
+int c = 30;
+
+const int* p = &a;
+int* const p2 = &b;
+const int* const p3 = &c;
+```
+
+### const int\*
+
+이거는 int*에 const가 걸린거 그래서
+*p = 30; 이건 컴파일에러가 난다.
+p = &b -> 이거는 가능
+
+### int\* const
+
+얘는 판대임 p에 const가 걸린거라
+p = &b -> 불가능
+\*p = 30 -> 가능
+
+### const int\* const p
+
+이거는 당연히 둘다 불가
+
+### 원래 객체가 const인경우
+
+```c++
+const int hp = 100;
+```
+
+이 객체를 일반 int*로 가리키게 할 수 있을까??
+-> 안됨 왜냐면 *p = 50; 을 통해 원래 const객체를 수정할 수도 있기 때문 그래서
+
+const int\* p = &hp;
+이렇게 받아야 함
+
+## 이게 왜중요?
+
+```c++
+void PrintPlayer(const Player* player)
+{
+    // player = nullptr; -> 가능하다
+    player->hp = 0; // 불가
+}
+```
+
+const Player\*이기 때문에 이 함수 선언 자체가 나는 이 포인터를 통해 Player객체를 수정하지 않을것이다 라는 선언과 같다.
+
+void Print(const Player& player);
+void Print(const Player\* player);
+
+둘다 같은 의미, 물론 Pointer버전은 Print(nullptr) 가능성이 있다.
+레퍼런스 버전은 일반적으로 유효한 객체가 필요하다.
+const를 쓰면 API의 의도를 표현할 수 있다.
+
+---
+
+# 6일차
+
+## 목표
+
+> 함수에 인자를 넘길 때 무엇이 복사되고, 무엇이 원본과 연결되는지를 구분한다.
+
+---
+
+## 매개변수도 객체다.
+
+```
+void Damage(int hp)
+```
+
+여기서 `hp`는 함수안에서 새로 존재하는 `int`객체다
+
+```c++
+int playerHp = 100;
+Damage(playerHp);
+```
+
+에는 서로다른 `int`객체가 있다.
+
+playerHp = 100
+hp = 100
+
+값만 같음, 서로 다른 객체
+
+---
+
+## 결론
+
+```c++
+void Func(Player p) // 복사본을 받음, 원본 수정 안됨
+void Func(Player& p) // 원본을 복사없이 읽기만 함, 큰 객체 전달할 때 자주 씀
+void Func(Player* p) // 주소값이 복사됨, 그래도 같은 원본 객체를 가리킬 수 있음. nullptr가능할때 주로 사용
+```
+
+포인터 매개변수
+
+```
+p = other; // 함수 내부 포인터 변수만 다른 주소를 가리킴
+p->hp = 50; // 실제 원본 객체 수정
+delete p; // p가 가리키는 동적 객체의 수명 종료
+```
+
+---
+
+```
+Player* ptr = new Player();
+Func(ptr);
+
+void Func(Player* p) {}
+```
+
+여기서 ptr과 p는 서로 다른 포인터 객체
+호출자 ptr, &ptr = 0x1000, 저장된 값 : 0x5000
+함수 p, &p = 0x2000, 저장된 값 : 0x5000
+
+ptr안에 들어있던 `Player객체의 주소 0x5000`이 p에 복사됨
+그래서 p = nullptr하면 함수 내부 포인터 p에 저장된 0x5000만 없어지고 호출자의 ptr은 여전히 0x5000을 들고있다.
+
+반면 delete p; 하면 p 안에 저장된 0x5000에 있는 Player객체를 파괴한다.
+
+```
+p -> 0x5000
+ptr -> 0x5000
+
+0x5000의 Player 객체 수명 종료
+```
+
+함수가 끝난 뒤 호출자의 ptr자체는 남아있지만
+ptr -> 이미 파괴된 Player, 그래서 ptr은 dangling pointer가 된다.
+
+---
+
+#
