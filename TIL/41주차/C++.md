@@ -605,4 +605,4 @@ ptr -> 이미 파괴된 Player, 그래서 ptr은 dangling pointer가 된다.
 
 ---
 
-#
+# 7일차
