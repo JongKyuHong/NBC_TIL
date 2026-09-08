@@ -176,3 +176,252 @@ delete p;
 ```
 
 를하면 Player 소멸자가 실행되고 메모리가 해제된다.
+
+---
+
+# 8일차
+
+## 목표
+
+> 클래스는 객체가 어떤 데이터를 가지고, 어떤 함수를 사용할 수 있는지 정의하는 타입이고, 실제 객체마다 멤버 변수는 따로 존재하지만 멤버 함수 코드는 보통 공유된다.
+
+## class는 객체 자체가 아니다
+
+```c++
+class Player
+{
+public:
+    int hp = 100;
+}
+```
+
+이건 `Player`라는 타입을 정의한 것
+아직 실제 `Player`객체가 만들어진 건 아니다.
+
+실제 객체는
+
+```c++
+Player a;
+Player b;
+```
+
+여기서 만들어진다.
+
+---
+
+### 멤버 변수/함수
+
+```c++
+class Player
+{
+public:
+    int hp;
+    void Damage()
+    {
+        hp -= 10;
+    }
+};
+
+Player a;
+Player b;
+Player c;
+```
+
+멤버변수는 당연히 객체마다 존재하지만
+멤버함수는 객체마다 복사되는것이 아니다. (기억하기) -> static멤버도 객체마다 따로 있지 않음
+
+Damage()안의 hp -= 10은 이게 a.hp인지 b.hp인지 어떻게 아는가? -> this포인터
+
+---
+
+# 9일차
+
+## 목표
+
+> 생성자는 객체가 만들어질 때 그 객체를 올바른 초기 상태를 만드는 함수
+
+---
+
+## 생성자
+
+```
+1. Player 객체를 위한 저장 공간 준비
+2. 멤버 초기화
+3. 생성자 본문 실행
+4. 완전히 생성된 Player 사용
+```
+
+> 생성자 본문이 실행되기 전에 이미 멤버 초기화 단계가 있다.
+
+### 초기화 리스트
+
+```c++
+class Player
+{
+public:
+    int hp;
+
+    Player()
+        : hp(100)
+    {
+    }
+};
+```
+
+: hp(100)
+이 부분이 멤버 초기화 리스트이다.
+이건 hp를 생성자 본문에서 나중에 대입하는게 아니라, 멤버 초기화 단계에서 바로 100으로 초기화한다.
+
+### 클래스 멤버 객체에서 차이
+
+```c++
+class Weapon
+{
+public:
+    Weapon()
+    {
+        std::cout << "Weapon Default\n";
+    }
+
+    Weapon(int damage)
+    {
+        std::cout << "Weapon Damage\n";
+    }
+};
+
+class Player
+{
+public:
+    Weapon weapon;
+
+    Player()
+    {
+        weapon = Weapon(100);
+    }
+};
+```
+
+이 경우 `weapon` 멤버는 생성자 본문에 들어오기 전에 이미 먼저 생성되어야 한다.
+
+```
+1. weapon 기본 생성자 실행
+2. Player 생성자 본문 진입
+3. Weapon(100) 임시 객체 생성
+4. weapon에 대입
+```
+
+```c++
+class Player
+{
+public:
+    Weapon weapon;
+
+    Player()
+        : weapon(100)
+    {
+    }
+};
+```
+
+이면
+
+```
+1. weapon을 처음부터 Weapon(100)으로 생성
+2. Player 생성자 본문 실행
+```
+
+이런 차이가 있다.
+그래서 클래스 타입 멤버는 초기화 리스트를 사용하는게 중요한 경우가 많다.
+
+---
+
+### const 멤버는 초기화 리스트가 필요하다.
+
+```c++
+class Player
+{
+public:
+    const int maxHp;
+
+    Player()
+    {
+        maxHp = 100;
+    }
+};
+```
+
+이건 안된다.
+maxHP는 const라서 한 번 초기화된 뒤 대입할 수 없기때문에
+그래서
+
+```c++
+class Player
+{
+public:
+    const int maxHp;
+
+    Player()
+        : maxHp(100)
+    {
+    }
+};
+```
+
+이렇게 초기화 리스트 사용해야된다.
+
+---
+
+### Reference 멤버도 마찬가지
+
+```c++
+class Player
+{
+public:
+    int& hpRef;
+
+    Player(int& hp)
+    {
+        hpRef = hp;
+    }
+};
+```
+
+얘도 안됨 레퍼런스는 생성될 때 바로 참조 대상을 정해야 하기때문
+
+```c++
+class Player
+{
+public:
+    int& hpRef;
+
+    Player(int& hp) : hpRef(hp)
+    {
+    }
+};
+```
+
+초기화해야한다.
+
+---
+
+### 멤버 초기화 순서
+
+```c++
+class Player
+{
+public:
+    int hp;
+    int mp;
+
+    Player()
+        : mp(50), hp(100)
+    {
+    }
+};
+```
+
+초기화 리스트에는 mp를 먼저 썼다.
+그러면 mp가 먼저 초기화될까?
+아님
+멤버는 클래스에 선언된 순서대로 초기화된다.
+그렇기 때문에 초기화 리스트 순서도 보통 멤버 선언 순서와 같은 순서대로 작성하는게 좋다.
