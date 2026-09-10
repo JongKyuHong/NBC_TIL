@@ -604,6 +604,216 @@ static 객체 / static 멤버
 > 일반 멤버와 static 멤버의 차이
 > static이 `객체마다 하나`인지 `타입 전체에 하나`인지 판단하기
 
+## static 지역 객체
 
+일반 지역 객체
+
+```c++
+void Func()
+{
+    Player p;
+}
+```
+
+Func() 호출할 때 생성되고, 함수 끝날 때 파괴됨
+
+```c++
+void Func()
+{
+    static Player p;
+}
+```
+
+p는 처음 해당 선언에 도달했을 때 한 번만 생성되고, 이후 Func()를 다시 호출해도 같은 객체를 재사용함
+즉, static 지역 객체는 함수가 끝나도 파괴되지 않는다.
+
+```c++
+int Count()
+{
+    static int count = 0;
+
+    return ++count;
+}
+
+Count(); // 1
+Count(); // 2
+Count(); // 3
+```
+
+값도 유지가 된다.
+static 지역 객체의 Scope는 여전히 Func() 내부이다. 즉, 함수 밖에서 count = 20; 이런식으로는 못씀
+하지만 LifeTime이 함수 호출보다 훨씬 길다. -> 한번 생성된 뒤 프로그램 종료 시점 근처까지
+
+## static 멤버변수
+
+```c++
+class Player
+{
+public:
+    int hp;
+    static int mp;
+}
+
+Player a;
+Player b;
+```
+
+hp는 매 객체마다 자기 hp를 따로 가진다. -> a.hp, b.hp
+하지만 static 멤버변수 mp는 따로 있는게 아니고 하나를 공유한다 -> Player::mp;
+static 멤버변수는 객체 없이 접근 가능하다.
+static 멤버함수도 객체없이 접근이 가능하다. static멤버함수에는 this가없다 어떤 객체를 대상으로 호출했는지 알필요가 없기 때문 -> 다시말하면 일반 멤버변수에도 접근할 수없다. 특정 객체에 속하지 않고 클래스 전체에서 공유되는 값이므로, 대신 static멤버변수에는 접근가능
+
+### 실사용 예제
+
+```c++
+class Player
+{
+public:
+    static int count;
+
+    Player()
+    {
+        ++count;
+    }
+
+    ~Player()
+    {
+        --count;
+    }
+};
+```
+
+객체의 개수를 파악할 수 있다.
+
+---
+
+# 14일차
+
+## 목표
+
+> 이 객체가 살아있는가? 를 기준으로 다음 문제를 구분
+>
+> - Dangling Pointer
+> - Dangling Reference
+> - 지역 객체의 주소/참조 반환
+> - 이미 수명이 끝난 객체 접근
+> - Undefined Behavior
+
+---
+
+## 가장 중요한 기준
+
+포인터든 Reference든 `가리키거나 참조하는 대상 객체가 아직 살아 있어야 한다`
+
+---
+
+여기서부터 커리큘럼 대폭 개선
+
+# 15일차
+
+## 목표
+
+> 얕은 복사는 주소 복사, 깊은 복사는 데이터 복사라고 외우는게 아니라 왜 Double delete가 발생하는지 메모리 구조까지 설명할 수 있는것이 목표
+
+---
+
+## 일반 객체 복사는 멤버를 복사한다.
+
+```c++
+class Player
+{
+public:
+    int hp;
+    int mp;
+};
+
+Player a;
+a.hp = 100;
+a.mp = 50;
+
+Player b = a;
+```
+
+b는 별도의 객체가 되고 멤버 값들이 복사된다.
+
+b.hp = 30; 을 넣어도
+
+a.hp = 100
+b.hp = 30
+이 된다.
+
+## 포인터 멤버가 있으면 상황이 달라짐
+
+```c++
+class Buffer
+{
+public:
+    int* data;
+
+    Buffer()
+    {
+        data = new int(100);
+    }
+
+    ~Buffer()
+    {
+        delete data;
+    }
+};
+
+Buffer a;
+```
+
+a의 data에 0x5000의 주소가 들어있다고 치자 이는 Heap의 int 객체를 가리키고 있다.
+그리고 Buffer가 파괴되면서 delete해서 Heap객체를 정리한다.
+이 클래스에서는 data가 단순한 관찰용 포인터가 아니라 Buffer가 관리하는 리소스이다.
+
+### 만약에 이 객체를 복사하면?
+
+```c++
+Buffer a;
+Buffer b = a;
+```
+
+별도의 복사 생성자를 작성하지 않았다면 기본적인 멤버 복사는 `data` 포인터가 가지고 있는 주소값을 복사한다.
+a.data가 0x5000이였다면 b.data도 0x5000을 가리키게 된다. Heap의 int가 하나 더 복사된게 아니고 주소값만 복사된것
+이것이 대표적인 Shallow Copy, 얕은복사이다.
+
+---
+
+## Shallow Copy
+
+객체가 가진 멤버 값을 그대로 복사하는 방식
+위와같은 상황에서는 double delete가 발생할 수 있다. a가 소멸될때, b가 소멸될때
+또, 수정시에 둘다 같이 변함 a.data = 200하면 b.data도 200이 됨
+
+## Deep Copy
+
+깊은복사, a와 b를 독립적인 리소스를 가지게끔
+복사생성자를 이용해 만들 수 있음
+
+```c++
+class Buffer
+{
+private:
+    int* data;
+
+public:
+    Buffer(int value)
+        : data(new int(value))
+    {
+    }
+
+    Buffer(const Buffer& other)
+        : data(new int(*other.data))
+    {
+    }
+
+    ~Buffer()
+    {
+        delete data;
+    }
+};
+```
 
 
