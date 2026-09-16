@@ -623,3 +623,322 @@ void Process(std::string&& name)
 `name`의 타입이 `std::string&&`인데도 `Use(name)`에서 `name`이 자동으로 rvalue 취급되지 않는 이유를 네 말로 설명해봐.
 
 -> 매개변수 name은 Process의 함수블록안에서 name이라는 lvalue로써 존재하기 떄문, name이라는 특정 객체로 존재해서 name.size() 같은 작업들이 가능하다 그렇기 때문에 rvalue취급이 안되고 std::move(name)을 사용해서 xvalue로 만들어주어야 rvalue취급을 받을 수 있다.
+
+---
+
+# Move Semantics
+
+## 목표
+
+> 왜 Move가 Copy보다 싸질 수 있는지
+> Move Constructor / Move Assignment가 언제 선택되는지
+> `std::move`가 실제로 하는 일
+> 이동 후 원본 객체를 어떻게 다뤄야 하는지
+> Move가 항상 싸거나 항상 발생하는 것은 아닌 이유
+> 게임 코드에서 어떤 상황에 Move를 쓰는지
+
+## Move가 필요한 이유
+
+예를들어 이런 벡터가 있다고 치자
+
+```c++
+std::vector<Enemy> enemies;
+```
+
+내부적으로 vector 객체 자체에는 대략
+
+```
+vector 객체
+┌────────────────┐
+│ Heap 주소      │ ───────▶ Enemy Enemy Enemy Enemy ...
+│ size           │
+│ capacity       │
+└────────────────┘
+```
+
+이런 정보가 있고, 실제 수많은 Enemy들은 보통 Heap쪽 버퍼에 있다.
+이걸 복사하면 새 버퍼를 만들고 각각의 Enemy를 복사해야한다.
+
+```c++
+std::vector<Enemy> copy = enemies;
+```
+
+데이터가 커질수록 굉장히 비싸진다.
+
+## Move는 기존 자원을 재사용할 수 있다.
+
+```c++
+std::vector<Enemy> moved = std::move(enemies);
+```
+
+개념적으로
+
+```
+이동 전
+
+enemies
+   │
+   ▼
+[Enemy][Enemy][Enemy][Enemy]
+
+
+이동 후
+
+enemies
+   │
+   └── 더 이상 기존 버퍼 소유 X
+
+moved
+   │
+   ▼
+[Enemy][Enemy][Enemy][Enemy]
+```
+
+즉, 모든 Enemy를 하나하나 복사하지 않고 버퍼의 소유권만 넘길 수 있다.
+이게 흔히말하는
+
+> Move로 비싼 Deep Copy를 피할 수 있다는 실제 의미
+
+## 중요한것! std::move가 데이터를 옮기는건 아니다.
+
+```
+std::move(enemies);
+```
+
+이 move자체는 Enemy들을 옮기지 않는다.
+실제로 하는 일은
+
+> enemies라는 lvalue표현식을 xvalue로 변환한다.
+
+자원이 이동가능한 상태로 만들겠다.
+컴파일러가 보고 -> 아 이객체의 자원을 가져가도 되는 상황일 수 있겠구나 판단
+T&&나 Move Constructor를 선택할 수 있게 된다.
+실제 이동은 이동생성자나 이동대입연산자가 한다.
+
+## Move Constructor
+
+```c++
+class Buffer
+{
+public:
+    Buffer(Buffer&& other)
+    {
+        // other의 자원을 가져오는 로직
+    }
+};
+
+Buffer a;
+Buffer b = std::move(a);
+```
+
+여기서 b는 새 객체
+
+따라서
+
+```
+MoveConstructor는
+-> 기존 객체 a를 이용해 새로운 객체 b를 생성한다.
+```
+
+## Move Assignment
+
+```c++
+Buffer a;
+Buffer b;
+b = std::move(a);
+```
+
+이런 새로운 b를 만드는게 아니다. 기존 b의 상태를 교체한다.
+따라서
+
+```
+Move Assignment
+-> 기존 b의 자원 정리
+-> a의 자원을 b가 가져감
+```
+
+이런 과정이 필요할 수 있다.
+
+## 직접 자원을 관리한다면 Move는 어떻게 생겼는가
+
+```c++
+class Buffer
+{
+private:
+    int* data = nullptr;
+
+public:
+    Buffer()
+        : data(new int[1000])
+    {
+    }
+
+    ~Buffer()
+    {
+        delete[] data;
+    }
+
+    Buffer(Buffer&& other) noexcept
+        : data(other.data)
+    {
+        other.data = nullptr;
+    }
+};
+```
+
+data = other.data;
+-> 주소를 가져온다.
+
+other.data = nullptr;
+-> 원본이 더 이상 그 자원을 소유하지 않도록 만든다.
+
+이걸 안해주면 나중에 Double Delete가 날 수 있다.
+
+Move는 단순 주소 복사가 아니라
+
+> Ownership까지 새 객체 쪽으로 이전하는 설계
+
+실제 vector, string, unique_ptr 같은 타입이 이걸 대신 해준다.
+
+즉, MoveSemantics를 배우는 이유는
+
+> Move Constructor를 매일 직접 짜려고 배우는 게 아니라, STL/스마트 포인터/게임 데이터를 이동시킬 때 어떤 일이 일어나는지 이해하기 위해서
+
+## moved-from object
+
+```c++
+std::vector<int> a = {1, 2, 3};
+
+std::vector<int> b = std::move(a);
+```
+
+여기서 a는 여전히 존재한다. C++에서 moved-from객체는 일반적으로
+
+> valid but unspecified state
+
+에있다고 표현한다.
+
+- 객체 자체는 유효함
+- 소멸 가능
+- 다시 값을 대입할 수 있음
+- 하지만 기존 내용이 정확히 무엇인지는 일반적으로 가정하지 말아야 함
+
+예를들면
+
+```
+a = {4, 5, 6} -> 이렇게 값을 다시 대입하는건 정상
+
+if (a.empty()) -> Move직후 반드시 true라고 모든 타입에 대해 일반화하면 안됨
+```
+
+> moved-from 객체는 파괴하거나, 새로운 값을 다시 넣어서 사용한다.
+
+## std::move를 썼다고 반드시 Move되는게 아니다
+
+이게 무슨 말인가 싶을 수 있는데
+std::move(a)는 단순히 xvalue를 만들뿐이다.
+
+실제 받는쪽이
+
+```c++
+void Func(const Data& data);
+```
+
+밖에없다면
+
+```c++
+Func(std::move(a));
+```
+
+를 해도 const Data&로 받을 수 있다.
+어떤 overload가 존재하는지가 중요하다.
+
+## const객체는 주의
+
+```c++
+const std::string name = "Player";
+
+std::string copy = std::move(name);
+```
+
+std::move(name)의 타입 성질은 const std::string&& 쪽이된다.
+일반적인 Move Constructor는
+
+std::string(std::string&&)
+
+처럼 non-const rvalue reference를 받는다.
+왜 const를 못받을까?
+
+Move는 보통 원본 객체의 내부 상태를 변경해야 하기 때문
+
+```
+원본 버퍼 주소 제거
+-> nullptr 등으로 변경
+```
+
+원본이 const면 바꿀 수 없다.
+그래서 이런 상황에서는 Copy Constructor가 선택될 수 있다.
+
+> std::move를 썼다고 반드시 Move되는게 아니다.
+
+## unique_ptr에서 Move가 특히 명확하다
+
+```
+std::unique_ptr<Weapon> weaponA =
+    std::make_unique<Weapon>();
+```
+
+unique_ptr은 단독 Ownership이므로 복사가 안된다.
+
+```c++
+auto weaponB = std::move(weaponA);
+```
+
+하면 Ownership을 이전한다.
+
+## 모든곳에 std::move를 붙이면?
+
+```c++
+void Render(const Player& player);
+```
+
+읽기만한 객체에 Render(std::move(Player));
+를 붙일 이유가 없다.
+const&로 읽기만 할거라면 이동하지 않는다.
+
+또,
+
+```c++
+std::string BuildName()
+{
+    std::string result = "Player";
+    return result;
+}
+```
+
+이런 반환코드에서 지역 객체를 값으로 반환할때는 그냥 return result를 해라 std::move를 쓰지말고, Copy Elision최적화를 오히려 방해함
+
+## Move가 항상 O(1)은 아니다
+
+Move = 무조건 포인터 하나 넘겨서 O(1)
+도 아님
+
+std::vector 같은 타입은 일반적으로 내부 버퍼를 넘길 수 있어서 매우 싸지만, 타입에 따라 Move 구현이 다르다.
+예를들어 작은 데이터를 객체 내부에 직접 저장하는 타입이라면 Move도 실제 데이터를 복사할 수 있다.
+std::string도 Small String Optimization때문에 작은 문자열은 내부 배열을 직접 옮기거나 복사하는 식으로 구현이 가능하다.
+
+> Move는 복사보다 싸게 구현할 수 있는 기회를 제공한다
+
+## noexcept가 Move에서 중요한 이유
+
+`std::vector<MyType>` 가 재할당 한다고 하자
+기존 요소들을 새 버퍼로 옮겨야 한다.
+MyType의 Move Constructor가 예외를 던질 가능성이 있으면, vector는 강한 예외 안정성을 위해 Move 대신 Copy를 선택할 수도 있다.
+
+그래서 자원만 넘기는 Move Constructor라면
+
+```c++
+MyType(MyType&& other) noexcept;
+```
+
+처럼 noexcept로 만드는게 중요하다.
