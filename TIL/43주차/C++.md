@@ -942,3 +942,347 @@ MyType(MyType&& other) noexcept;
 ```
 
 처럼 noexcept로 만드는게 중요하다.
+
+# Type Deduction / Forwarding Reference / std::forward
+
+## 목표
+
+> 아래 코드 이해하기
+
+```c++
+template <typename T>
+void Add(T&& value)
+{
+    Container.Add(std::forward<T>(value));
+}
+```
+
+T&&랑 forward가 뭔지 배우기
+
+> 이 함수는 lvalue가 들어오면 lvalue로, rvalue가 들어오면 rvalue로 다음 함수에 그대로 전달하려고 이렇게 작성한 것이다.
+
+## Type Deduction
+
+```c++
+template<typename T>
+void Func(T value){}
+
+int x = 10;
+Func(x);
+```
+
+컴파일러가 x를 보고 T = int라고 생각한다
+이게 Type Deduction(타입 추론)이다.
+
+## Reference를 받으면 const도 중요해진다
+
+만약에
+
+```c++
+const int x = 10;
+Func(x);
+```
+
+라면? 이번에는 T는
+
+```c++
+T = const int
+```
+
+로 추론된다.
+즉 Reference 기반 Type Deduction에서는 원본 const성질이 보존될 수 있다.
+
+## T&&
+
+보통 rvalue reference로 알고있음
+그런데 템플릿에서는 조금 다르게 동작함
+
+```c++
+template<typename T>
+void Func(T&& value)
+{
+}
+```
+
+T가 호출 인자를 보고 추론되는 상황이라면 T&&를 Forwarding Reference(전달 참조)라고 부른다.
+이거는 rvalue, lvalue 둘다 받는다.
+
+### 왜 lvalue도 T&&에 들어갈 수 있나?
+
+```c++
+template <typename T>
+void Func(T&& value)
+{
+}
+
+Enemy enemy;
+
+Func(enemy);
+```
+
+enemy는 lvalue다.
+그런데 특별하게 컴파일러가
+
+```c++
+T = Enemy&
+```
+
+로 추론한다.
+Forwarding Reference에서는 T자체가 Reference 타입으로 추론될 수 있다.
+
+```c++
+// 원래 함수가
+T&&
+// 이렇게 되어있는데 T자리에 Enemy&를 넣으면
+
+Enemy& &&
+-> Enemy&
+// 이렇게 된다 Reference가 두개 붙어있다.
+```
+
+이것을 하나로 정리하는게 Reference Collapsing(참조 축약)이다.
+
+## Reference Collapsing
+
+규칙은 이것뿐이다.
+
+```
+& + & -> &
+& + && -> &
+&& + & -> &
+&& + && -> &&
+```
+
+## rvalue를 넣으면?
+
+```c++
+Func(Enemy{});
+```
+
+Enemy{}의 경우 rvalue이다.
+
+```c++
+T = Enemy
+```
+
+로 추론된다. 그러면 `T&&`는 그대로
+`Enemy&&`로 추론된다.
+
+이게 Forwarding Reference의 핵심
+
+## 왜 이런게 필요한가?
+
+게임 엔진에 범용 Container 함수가 있다고 했을때
+
+```c++
+template <typename T>
+void Add(T&& value)
+{
+    Container.Add(value);
+}
+```
+
+호출자가
+
+```c++
+Enemy enemy;
+
+Add(enemy);
+```
+
+lvalue로 호출할수도
+
+```c++
+Add(Enemy{});
+```
+
+rvalue로 호출할수도 있다.
+
+첫번째는 기존 enemy가 앞으로 사용될수도 있으므로 함부로 Move하면 안되고
+두번째는 임시 객체니까 함수 호출 뒤사라진다. 그러면 가능하면 Move를 해서 Copy를 줄이고 싶다
+
+```
+Add(enemy)
+→ 기존 객체이므로 lvalue로 전달
+
+Add(Enemy{})
+→ 임시 객체이므로 rvalue로 전달
+```
+
+**그런데 함수안에서는 value가 무조건 lvalue다.**
+
+rvalue호출을 해도 매개변수 탓에 무조건 lvalue로 판정된다.
+그렇다고 std::move(value)를 쓰면?
+
+```c++
+template <typename T>
+void Add(T&& value)
+{
+    Container.Add(std::move(value));
+}
+```
+
+rvalue가 들어왔을때는 Move를 하면 되니까 상관없지만
+lvalue의 경우에는 Move가 제약적이다.
+
+그래서 forward를 쓴다.
+
+### std::forward
+
+```
+원래 lvalue였으면 → lvalue 유지
+원래 rvalue였으면 → rvalue 유지
+```
+
+```c++
+template <typename T>
+void Add(T&& value)
+{
+    Container.Add(std::forward<T>(value));
+}
+```
+
+forward를 쓰면 실제로 저렇게 쓸 수 있다.
+
+```c++
+Enemy enemy;
+Add(enemy);
+```
+
+아까 `T = Enemy&`로 추론되었다.
+그래서
+
+```c++
+std::forward<T>(value);
+```
+
+forward는 value를 lvalue로 전달한다.
+
+### std::move와의 차이
+
+```c++
+std::move(value);
+```
+
+> 나는 이제 이 객체를 이동 가능한 대상으로 취급하겠다.
+
+```c++
+std::forward<T>(value);
+```
+
+> 이 값이 처음 들어왔을 때의 lvalue/rvalue 성질을 유지해서 다음 함수로 보내겠다.
+
+## 이것을 Perfect Forwarding이라고 한다.
+
+```c++
+template <typename T>
+void Add(T&& value)
+{
+    Container.Add(std::forward<T>(value));
+}
+```
+
+위 함수처럼 중간 Wrapper가 원래 인자의 성질을 보존하면서 다음 함수로 넘기는것을 Perfect Forwarding(완벽 전달)
+
+### 실 사례
+
+`emplace_back`
+
+대표적인 실사례이다.
+
+```c++
+Enemies.emplace_back(name, hp, position);
+```
+
+`emplace_back`은 내부에서 `Enemy`를 직접 생성해야 한다.
+
+대충 개념적으로
+
+```c++
+template <typename... Args>
+void emplace_back(Args&&... args)
+{
+    // vector 내부 메모리에 Enemy 직접 생성
+    Enemy(std::forward<Args>(args)...);
+}
+```
+
+처럼 생각할 수 있다.
+왜 `forward`가 필요하냐면 각 생성자 인자가
+
+- lvalue일수도
+- rvalue일수도
+- const일수도 있고
+
+그 성질을 `Enemy` 생성자까지 그대로 전달해야 하기 때문이다.
+
+## 일반 T&&와 Forwarding Reference는 다르다
+
+```c++
+void Func(Enemy&& enemy);
+```
+
+위는 그냥 rvalue reference다.
+
+```c++
+Enemy e;
+
+Func(e);        // 불가능
+Func(Enemy{});  // 가능
+```
+
+템플릿이 붙어서 T추론이 가능하면 Forwarding Reference가 된다.
+
+## 정리
+
+### Type Deduction
+
+컴파일러가 함수 호출 인자를 보고 `T`를 결정한다.
+
+### Forwarding Reference
+
+```c++
+template <typename T>
+void Func(T&& value);
+```
+
+T가 추론되는 상황에서
+
+```
+lvalue입력 -> T가 T& 형태로 추론
+rvalue입력 -> T가 일반 T 형태로 추론
+```
+
+해서 둘다 받을 수 있다.
+
+### Reference Collapsing
+
+```
+하나라도 &가 있으면 결과는 &
+둘다 &&일때만 &&
+```
+
+그래서 lvalue도 `T&&`함수에 들어갈 수 있다.
+
+### std::forward
+
+Wrapper 함수에서
+
+```
+원래 lvalue -> lvalue
+원래 rvalue -> rvalue
+```
+
+로 다음 함수에 전달한다.
+
+### 왜 배우는가??
+
+```c++
+emplace_back
+make_unique
+Factory
+Container API
+Task System
+```
+
+같은 Modern C++코드를 볼때 왜 `T&&`과 `std::forward`가 같이 나오는지 이해하기 위함
