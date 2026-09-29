@@ -703,3 +703,103 @@ C ─┘       count = 3
               ↓
             Player
 ```
+
+## weak_ptr::lock()
+
+```c++
+class Player
+{
+public:
+    std::weak_ptr<Guild> GuildPtr;
+};
+
+if (auto Guild = PlayerA->GuildPtr.lock())
+{
+    Guild->DoSomething();
+}
+```
+
+lock()은 weak_ptr이 가리키던 객체가 아직 살아있는지 확인하고, 살아 있다면 shared_ptr을 생성해 그 객체의 생명을 잠시 연장한다. 이미 객체가 파괴되었다면 빈 shared_ptr을 반환한다.
+
+# RVO, NRVO
+
+```c++
+Player CreateA()
+{
+    return Player{};
+}
+
+Player a = CreateA();
+```
+
+여기서 Player{}는 prvalue이다.
+C++17부터는
+
+```
+A가 들어갈 최종 메모리 공간
+┌──────────────┐
+│              │
+└──────────────┘
+       ↑
+Player{}를 여기 바로 생성
+```
+
+이렇게 판정이 되어서
+
+```c++
+class Player
+{
+public:
+    Player() = default;
+
+    Player(const Player&) = delete;
+    Player(Player&&) = delete;
+};
+```
+
+이렇게 복사 생성자와 이동생성자가 둘다 없어도 정상적으로 가능하다
+
+---
+
+```c++
+Player CreateB()
+{
+    Player P;
+    return P;
+}
+```
+
+P는 이미 실제 지역 객체이다.
+
+```
+CreateB 스택 프레임
+
+┌───────────┐
+│ Player P  │
+└───────────┘
+```
+
+여기서 컴파일러가 NRVO를 적용하면
+
+```
+실제로 P를 여기 만들지 않고
+
+호출자
+┌──────────────┐
+│ 최종 Player   │ ← 이 공간을 처음부터 P로 사용
+└──────────────┘
+```
+
+하기때문에 이동/복사가 없다.
+하지만 NRVO는 보장되지 않는다.
+컴파일러가 NRVO를 안 한다고 생각해보면 이동, 복사 생성자가 필요하다 왜냐 실제 P가 있으니까
+
+```
+컴파일러가 반드시 해야 한다 ❌
+컴파일러가 해도 된다 ✅
+```
+
+NRVO는 optional copy elision이라고 한다.
+NRVO를 하지 않아도 코드가 성립되어야 함
+
+RVO같은 prvalue반환은 guaranteed copy elision이 보장된다.
