@@ -544,4 +544,162 @@ Cycle 4: MUL D 시작
 
 > SuperScalar = CPU내부에 여러 실행 유닛을 두고, 독립적인 여러 명령을 같은 사이클에 병렬로 처리하는 구조
 
+# 멀티스레드 상태 관리 Snapshot / Double Buffering
 
+## Snapshot
+
+한쪽 스레드에서 게임 상태를 계속 수정하고, 다른쪽에서는 렌더링을 한다고 했을때
+서로 다른 상태가 섞일 수 있음
+
+```
+Render Thread: Player 위치 읽음
+
+Game Thread: Enemy 위치 수정
+Game Thread: Player 위치 수정
+
+Render Thread: Enemy 위치 읽음
+```
+
+그러면 Render Thread가 본 상태는
+
+```
+Player = 이전 상태
+Enemy  = 새로운 상태
+```
+
+처럼 서로 다른 시점의 데이터가 섞일 수 있음
+
+Snapshot은 이걸 막으려고 특정 순간의 상태를 하나 만들어 두는것
+
+```
+원본 World
+    ↓
+Snapshot 생성
+
+Snapshot
+┌─────────────────────┐
+│ Player 상태         │
+│ Enemy 상태          │
+│ 기타 상태           │
+└─────────────────────┘
+```
+
+Render Thread는 Snapshot만 읽음
+그래서 렌더링 도중 게임 상태가 바뀌어도 렌더러 입장에서는
+`내가 보고 있는 데이터는 한 시점의 상태`가 보장됨
+
+> Snapshot의 목적 = 일관된 읽기 상태를 보장하는 것
+
+---
+
+Snapshot에는 복사비용이 있을 수 있다.
+상태를 복사하기 때문에 월드가 엄청 크면 매 프레이 전체 복사는 비쌀 수 있음
+그래서 실제 구현때는
+
+```
+- 전체 복사
+- 필요한 부분만 복사
+- Copy-on-Write
+- immutable data
+- versioning
+- double buffering
+```
+
+등을 사용할 수 있음
+
+## Double Buffering
+
+버퍼를 두개 준비하는 방식
+
+```
+Buffer A
+Buffer B
+```
+
+Read Buffer, Write Buffer 따로두는 방식
+
+```
+Frame N
+
+Render Thread
+    ↓
+Buffer A 읽음
+
+Game Thread
+    ↓
+Buffer B 작성
+```
+
+둘의 작업이 끝나면 버퍼 역할을 바꿈 (Swap)
+
+```
+Frame N+1
+
+Render Thread
+    ↓
+Buffer B 읽음
+
+Game Thread
+    ↓
+Buffer A 작성
+```
+
+---
+
+Double Buffering은 Snapshot을 제공하는 방법 중 하나로 볼 수 있음
+
+### 왜 멀티스레딩에서 좋은가?
+
+하나의 데이터를 같이 읽고/쓰면
+
+```
+Thread A: 읽기
+Thread B: 쓰기
+```
+
+동기화가 필요하다 (Mutex, lock, atomic)같은
+반면 Double Buffering이면
+
+```
+Thread A
+→ Read Buffer만 읽음
+
+Thread B
+→ Write Buffer만 씀
+```
+
+작업 중에는 서로 같은 메모리를 건드리지 않음
+그리고 안전한 시점에서
+
+```
+swap(ReadBuffer, WriteBuffer);
+```
+
+# shared_ptr
+
+## Control Block
+
+shared_ptr들이 공동으로 참고하는 관리용 정보 덩어리
+
+```
+Control Block
+- strong reference count   ← shared_ptr 개수
+- weak reference count     ← weak_ptr 관련 카운트
+- 객체 삭제에 필요한 정보
+```
+
+```c++
+std::shared_ptr<Player> A = std::make_shared<Player>();
+std::shared_ptr<Player> B = A;
+```
+
+A와 B가 각각 별도의 카운트를 들고 있는게 아니라, 같은 Control Block을 가리키면서 그 안의 Reference Count를 공유한다.
+
+```
+A ─┐
+B ─┼──→ Control Block
+C ─┘       count = 3
+              │
+              ↓
+            Player
+```
