@@ -803,3 +803,36 @@ NRVO는 optional copy elision이라고 한다.
 NRVO를 하지 않아도 코드가 성립되어야 함
 
 RVO같은 prvalue반환은 guaranteed copy elision이 보장된다.
+
+## Reader-Writer Lock
+
+읽기 작업끼리는 동시에 진행해도 데이터가 깨지지 않기 떄문에 여러 Render를 같이 허용할 수 있다
+
+일반 mutex
+
+```
+Reader A ─ lock
+Reader B ─ 대기
+Reader C ─ 대기
+Writer   ─ 대기
+```
+
+Reader-Writer Lock
+
+```
+Reader A ─┐
+Reader B ─┼→ 동시에 읽기 가능
+Reader C ─┘
+```
+
+```c++
+std::shared_mutex Mutex;
+
+// Reader
+std::shared_lock Lock(Mutex);
+
+// Writer
+std::unique_lock Lock(Mutex);
+```
+
+보통 C++에서는 shared로 Reader를 unique로 Writer를 사용
