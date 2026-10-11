@@ -199,43 +199,6 @@ Position[i] += Velocity[i] * DeltaTime;
 
 캐릭터 위치 업데이트를 캐릭터 1000개에 반복한다면 SIMD가 잘먹히는 대표적인 경우이다.
 
-# Net Relevancy
-
-이 Actor 정볼를 이 클라이언트에게 지금 보내줄 필요가 있느냐?
-100명의 플레이어가 있는 큰 맵에서 내 위치에서 수 km 떨어진 플레이어까지 매 프레임 복제할 필요는 없다.
-
-중요한건 Relevancy는 클라이언트마다 따로 판단한다. 같은 Actor라도 A 플레이어에게는 Relevant이고, B 플레이어에게는 Not Relevant일 수 있다. 언리얼은 기본적으로 AActor::IsNetRelevantFor()를 통해 특정 Connection에 대해 이 Actor가 Relevant한지를 판단한다.
-
-보통
-
-- 거리
-- 소유한 클라만
-- 자기 Owner의 판단 따라가기
-- 일정 거리안에서
-- 거리에 상관없이
-
-등등의 조건이 있다.
-
-```
-Actor가 Replication 대상인가?
-        ↓
-    bReplicates
-        ↓
-이 Connection에게 보낼 필요가 있는가?
-        ↓
-    Net Relevancy
-        ↓
-      Relevant
-        ↓
-실제로 복제 후보가 됨
-```
-
-bReplicated = true라고 해도 Not Relevant면 복제를 하고 있지 않는다.
-
-# Dormancy
-
-이 Actor는 한동안 상태가 안바뀌니까, 아예 복제 검사 대상에서 빼두자
-
 # vector
 
 ## emplace_back과 push_back의 차이
@@ -463,4 +426,6 @@ C가 끝나야 D 실행 가능
 만약에 값 변경이 들어간다면 index2를 변경한다고 하면 index2가 포함된 구간만 수정하면 된다.
 트리여서 조회, 변경이 O(log N)이다.
 
-# 
+# False Sharing
+
+서로 다른 변수를 수정하고 있는데도 그 변수들이 같은 캐시라인에 있어서 코어들이 캐시 라인을 계속 무효화하여 성능이 떨어지는 현상
