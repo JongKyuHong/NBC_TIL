@@ -196,3 +196,135 @@ Budget Allocator가 관리하는 컴포넌트는 기존 URO를 별도로 함께 
 - 검증 : 전투 판정, Montage, Bone위치, 시각적 품질에 문제가 없는지 확인
 
 GPU의 Skeletal Mesh 렌더링 비용이 문제라면 애니메이션 계산 최적화 외에도 Mesh LOD와 드로우 비용등을 별도로 분석 해야됨
+
+# GetAllActorsOfClass
+
+게임 월드에 몬스터가 100마리 있는 상황
+그중 `AEnemyCharacter` 클래스에 해당하는 몬스터를 전부 찾아야 하는 상황일때 사용하는 함수
+
+```c++
+UGameplayStatics::GetAllActorsOfClass()
+```
+
+현재 월드에 존재하는 특정 클래스의 액터들을 찾아 배열에 담아주는 함수, 해당 클래스의 자식 클래스 액터도 검색 대상에 포함됨
+
+```c++
+static void GetAllActorsOfClass(
+    const UObject* WorldContextObject,
+    TSubclassOf<AActor> ActorClass,
+    TArray<AActor*>& OutActors
+);
+```
+
+- WorldContextObject : 어느 월드에서 찾을지 판단할 객체, 액터 내부라면 보통 this
+- ActorClass : 검색할 액터 클래스
+- OutActors : 검색된 액터를 저장할 배열
+
+반환값은 void인게 OutActors에 검색결과가 담김
+
+1. 조심할점 - 성능
+
+```c++
+void AEnemyManager::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    TArray<AActor*> Enemies;
+
+    UGameplayStatics::GetAllActorsOfClass(
+        this,
+        AEnemyCharacter::StaticClass(),
+        Enemies
+    );
+}
+```
+
+언리얼에서는 액터 검색에 내부 최적화를 사용하지만 틱에다가 두면 많이 느려질 수 있다.
+따라서 매 프레임 모든 몬스터를 찾는 방식은 가능하면 피하는게 좋다.
+
+2. 어떻게 개선할까?
+
+게임 시작시 한번 검색하고, 결과를 보관해 재사용하는 방법이 있을 수 있다. 몬스터가 생성될때 AEnemyManager에 등록하고, 제거될때 등록 해제하는 방식을 사용할수도 있다.
+
+3. 비슷한 API비교
+
+- GetActorOfClass : 해당 클래스의 액터 하나를 검색
+- GetAllActorsOfClass : 해당 클래스의 모든 액터를 배열로 검색
+- TActorIterator : 조건에 맞는 액터를 순회
+
+# GameplayTags
+
+게임에 수십개의 상태가 있으면 이를 쉽게 관리하기 위해서 사용한다. GameplayTags는 속성이나 상태를 계층적인 이름으로 표현하는 기능
+GAS와 시너지가 좋다.
+
+# Enhanced Input Mapping Context
+
+Input Mapping Context는 현재 상황에 적용할 키와 액션의 연결정보를 말함
+그냥 캐릭터 상태와 차량에 탔을때 키에 따라 행동이 달라지듯이
+
+- UInputAction : 점프, 이동, 상호작용 같은 행동을 정의
+- UInputMappingContext : 특정 키를 어떤 Input Action에 연결할지 정의
+- UEnhancedInputLocalPlayerSubsystem : 로컬 플레이어에게 MappingContext를 적용하고 관리
+
+InputAction은 뭘할지, MappingContext는 어떤 입력으로 실행할지를 담당함
+
+```
+IMC_OnFoot
+WASD -> 이동
+E -> 상호작용
+Space -> 점프
+
+IMC_Vehicle
+WASD -> 차량조작
+E -> 차량에서 내리기
+Space -> 핸드브레이크
+```
+
+Context는 주로 어떤 작업을 수행하거나 판단할 때 필요한 주변 상황이나 정보로 생각하면 된다.
+
+# SpawnActor<T>()
+
+```c++
+T* SpawnActor<T>(
+    UClass* Class,
+    const FVector& Location,
+    const FRotator& Rotation,
+    const FActorSpawnParameters& SpawnParameters
+);
+```
+
+Class는 어떤 액터 클래스를 만들지, SpawnParameters는 Owner, 생성시 충돌 처리 등 추가 설정
+스포너를 운용할때 충돌로 인해 스폰이 실패하는 경우도 있다.
+SpawnCollisionHandlingOverride여기서 충돌 여부와 관계에 따라 소환/미소환/근처에 소환시도하고 실패하면 미소환하는 옵션을 선택할 수 있다.
+
+# Destroy, Endplay와 메모리
+
+Destroy는 말그대로 파괴하는거 이제 월드에서 퇴장하라고 명령하는 함수
+하지만 이때 메모리에서 즉시 해제되는건 아니다.
+추후에 GC에서 회수해감
+
+Endplay는 액터가 월드에서 제거되거나 플레이가 종료될 때 호출되는 수명 주기 함수
+몬스터가 월드에서 퇴장하는 과정에서 떠나기전에 정리하는 함수라고 보면 됨
+
+# 컴포넌트 붙이기
+
+1. 생성
+
+- CreateDefaultSubobject
+  객체 생성, 생성자에서 기본 구성 요소 만들때 사용
+
+- NewObject
+  객체 생성, 게임 실행 중 필요한 UObject 만들 때 사용
+
+2. 부착
+
+- SetupAttachment
+  부모 컴포넌트 지정하는 역할, 컴포넌트가 등록되기 전 사용
+  등록되기 전에 어디에 붙을지 미리 정하기
+
+- AttachToComponent
+  컴포넌트 부착/재부착, 주로 게임 실행중에 사용
+  이미 존재하는 컴포넌트를 게임 중 부착하거나 다시 붙이기
+
+- RegisterComponent
+  컴포넌트 월드 등록, 런타임에 새 컴포넌트 생성했을때 사용
