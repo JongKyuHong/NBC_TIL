@@ -328,3 +328,280 @@ Endplay는 액터가 월드에서 제거되거나 플레이가 종료될 때 호
 
 - RegisterComponent
   컴포넌트 월드 등록, 런타임에 새 컴포넌트 생성했을때 사용
+
+# 직렬화
+
+메모리에 존재하는 데이터를 저장하거나 전송할 수 있는 형태로 변환하는 과정
+
+```c++
+USTRUCT()
+struct FWeaponData
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    int32 Level = 5;
+
+    UPROPERTY()
+    float Damage = 25.5f;
+};
+```
+
+이런 구조체가 있다고 했을때 서버는 이 데이터를 클라이언트에 전달해야 함
+
+```
+서버 메모리
+-> 직렬화
+네트워크 전송용 데이터
+-> 역직렬화
+클라이언트 메모리
+```
+
+메모리를 그대로 보내면 패딩이나 포인터 주소처럼 전송할 필요가 없거나 다른 pc에서 의미없는 정보까지 포함될 수 있다.
+전송에 필요한 데이터를 정해진 규칙으로 변환하고, 수신측에서 다시 복원
+
+## 직렬화는 언제 사용할까?
+
+Unreal에서 UPROPERTY(Replicated)로 데이터를 복제하면 내부적으로 직렬화가 수행됨
+일반적인 변수나 구조체는 엔진이 기본 직렬화를 하는데, 전송 형식을 최적화하거나 특별한 규칙이 필요하면 직접 구현할 수 있다.
+
+# UFUNCTION
+
+자주헷갈리는 4가지
+
+- BlueprintCallable
+  C++에서 구현 O, BP에서 구현/재정의 X
+
+- BlueprintPure
+  C++에서 구현 O, BP에서 구현/재정의 X
+
+- BlueprintImplementableEvent
+  C++에서 구현 X, BP에서 구현/재정의 O
+
+- BlueprintNativeEvent
+  C++에서 구현 O(기본 구현), BP에서 구현/재정의 O(선택적 재정의)
+
+## BlurpintCallable - 실행 시키는 함수
+
+```c++
+// .h
+UFUNCTION(BlueprintCallable)
+void TakeDamage(int32 Damage);
+// .cpp
+void AMyCharacter::TakeDamage(int32 Damage)
+{
+    Health -= Damage;
+}
+```
+
+블루프린트에서 이 함수를 호출하면 체력을 감소시킬 수 있음
+
+## BlueprintPure - 값을 가져오는 함수
+
+```c++
+//. h
+UFUNCTION(BlueprintPure)
+int32 GetHealth() const;
+// .cpp
+int32 AMyCharacter::GetHealth() const
+{
+    return Health;
+}
+```
+
+이 함수는 체력을 변경하지 않고 현재 체력을 반환함
+Pure함수는 실행 핀 없이 값을 계산하거나 조회한다라고 기억하면 된다.
+
+## BlueprintImplementableEvent
+
+```c++
+// .h
+UFUNCTION(BlueprintImplementableEvent)
+void PlayHitEffect();
+```
+
+C++에서는 함수의 몸체를 구현하지 않고, BP에서 이펙트 재생 동작등을 구현함
+
+## BlueprintNativeEvent
+
+```c++
+// .h
+UFUNCTION(BlueprintNativeEvent)
+void OnHit();
+
+virtual void OnHit_Implementation();
+// .cpp
+void AMyCharacter::OnHit_Implementation()
+{
+    // C++ 기본 동작
+}
+```
+
+BP에서 재정의하지 않으면 C++기본구현이 실행됨, BP에서 재정의한 경우 부모 구현을 호출할지는 별도로 결정할 수 있음
+
+# BindWidget
+
+```c++
+UPROPERTY(meta=(BindWidget))
+TObjectPtr<UButton> BuyButton;
+```
+
+UI의 디자인은 Widget Blueprint에서 만들고, 버튼 클릭 처리는 C++에서 구현하려고 할때 이 둘을 연결해주는게 BindWidget이다.
+Widget Blueprint에 이름이 BuyButton이고 타입이 호환되는 버튼을 만들어두면, 해당 위젯 인스턴스가 초기화될 때 C++멤버와 연결됨
+
+- BindWidget : 해당 이름/타입의 위젯 연결 요구
+- BindWidgetOptional : 해당 위젯이 없어도 허용
+
+## NativeOnInitialized와 NativeConstruct차이
+
+- NativeOnInitialized()
+  UUserWidget 인스턴스 초기화 시 한 번
+  버튼 클릭 이벤트처럼 한 번만 연결할 것
+
+- NativeConstruct()
+  내부 Slate Widget 구성 시 호출, 재호출 가능
+  화면 표시 시 상태 갱신
+
+- NativeDestruct()
+  Slate Widget의 종료 과정
+  화면 사용 기간에 맞춘 이벤트 연결 해제
+
+```c++
+UPROPERTY(meta = (BindWidget))
+TObjectPtr<UButton> BuyButton;
+
+virtual void NativeOnInitialized() override;
+virtual void NativeConstruct() override;
+
+UFUNCTION()
+void HandleBuyClicked();
+```
+
+```c++
+void UShopWidget::NativeOnInitialized()
+{
+    Super::NativeOnInitialized();
+
+    if (BuyButton)
+    {
+        BuyButton->OnClicked.AddDynamic(
+            this,
+            &UShopWidget::HandleBuyClicked
+        );
+    }
+}
+
+void UShopWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    RefreshShopUI();
+}
+```
+
+BuyButton은 OnInitialized에서 한번 연결하고, 상점UI를 갱신해야 할때 NativeConstruct 호출
+
+# Unreal Interface
+
+언리얼에서의 인터페이스는 보통 두 클래스가 함께 등장한다.
+
+```c++
+UINTERFACE(Blueprintable)
+class UInteractable : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IInteractable
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void Interact(AActor* Interactor);
+};
+```
+
+- UInteractable : 언리얼 리플렉션 시스템에서 인터페이스를 나타내는 타입, 언리얼 엔진이 인터페이스를 인식하도록 하는 리플렉션용 타입이다.
+- IInteractable : 실제 인터페이스 함수들을 선언하는 C++ 타입
+
+```c++
+UCLASS()
+class AChest : public AActor, public IInteractable
+{
+    GENERATED_BODY()
+
+public:
+    virtual void Interact_Implementation(
+        AActor* Interactor
+    ) override;
+};
+```
+
+여기서 AChest가 액터이면서 IInteractable것도 구현한다는 뜻이다.
+대신에 함수명이 인터페이스에서는 Interact()라고 선언했는데, 실제 구현은 Interact_Implementation()이라고 작성함 이유는 Interact에서 BlueprintNativeEvent를 사용했음
+C++에서도 기본 동작을 구현할 수 있고, Blueprint에서도 동작을 재정의할 수 있게 하는 기능이다.
+언리얼은 이를 위해 두가지를 구분한다.
+
+- Interact() : 언리얼이 관리하는 이벤트 호출 경로, 함수를 호출할때 C++구현을 실행할지, 블루프린트에서 재정의한 구현을 실행할지 언리얼이 결정
+- Interact_Implementation() : C++에서 작성하는 실제 구현
+
+## Execute\_
+
+우리가 원하는 동작은 NPC든 문이든 상자든 동일한 방식으로 호출하면서 C++과 Blueprint중 실제로 구현된 함수가 실행되도록 하는 것
+
+```c++
+IInteractable::Execute_Interact(Target, this);
+```
+
+이 함수는 우리가 인터페이스에 직접 선언한 함수가 아님, UFUNCTION(BlueprintNativeEvent)로 선언된 인터페이스 함수에 대해 언리얼이 만들어 준것
+
+Target : 인터페이스를 구현한 객체, this : 선언한 Interact(AActor\* Interactor)의 매개변수
+이 함수는 대상의 실제 구현을 찾아서 호출함
+만약에 Implementation()을 직접 호출하면 Blueprint에서 재정의한 동작을 거치지 않을 수 있어서 Execute\_를 통해 호출하는것이다
+
+대신 Execute\_는 Blueprint에서도 구현/재정의 할 수 있는 인터페이스 함수에서만 생성된다.
+
+# UAnimInstance와 UAnimMontage
+
+- UAnimInstance : 캐릭터의 애니메이션을 관리하고 재생 상태를 제어하는 객체 = 영상을 재생하고 제어하는 플레이어
+- UAnimMontage : 공격/스킬/재장전처럼 특정 동작을 재생하기 위한 애니메이션 에셋 = 재생할 영상 파일
+
+```c++
+UAnimInstance* AnimInstance =
+    GetMesh()->GetAnimInstance();
+```
+
+캐릭터가 공격 몽타주를 재생하려면 UAnimInstace를 통해 실행할 수 있다.
+
+```c++
+UAnimInstance* AnimInstance =
+    GetMesh()->GetAnimInstance();
+
+if (!AnimInstance || !AttackMontage)
+{
+    return;
+}
+
+float Duration = AnimInstance->Montage_Play(
+    AttackMontage
+);
+```
+
+Montage_Play()는 몽타주 재생을 시도하는 함수, 몽타주 길이를 반환, 재생에 실패하면 `.0f`를 반환
+
+## 애니메이션이 끝났다는걸 어떻게 알까?
+
+`Montage_SetEndDelegate()`를 통해 알 수 있다.
+몽타주가 실제로 종료되었을때 호출되는 콜백이다.
+
+공격 도중 기절해서 몽타주가 중단, 공격 속도 버프때문에 몽타주 재생속도가 변경됨, 다른 공격 몽타주로 전환됨
+같은 돌발상황에 대처가능
+
+BlendOut이 있기전에 호출되는 델리게이트도 있는데 구분해서 사용하면 된다.
+
+- Montage_SetBlendingOutDelegate() : 공격 자세에서 기본자세로 전환하기 시작할때 호출
+- Montage_SetEndDelegate() : 전환까지 끝나서 몽타주의 영향력이 완전히 사라졌을때 호출
+
+BlendingOutDelegate는 주로 몽타주가 종료 전환을 시작하는 시점에 후처리가 필요할 때
+
