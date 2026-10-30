@@ -605,3 +605,51 @@ BlendOut이 있기전에 호출되는 델리게이트도 있는데 구분해서 
 
 BlendingOutDelegate는 주로 몽타주가 종료 전환을 시작하는 시점에 후처리가 필요할 때
 
+# GAS Full, Mixed, Minimal 모드
+
+ASC의 GameplayEffect 복제 모드
+
+- Full : 소유 클라에는 전체 GameplayEffect 정보, 다른 클라에도 전체 정보
+- Mixed : 소유 클라에는 전체 GameplayEffect 정보, 다른 클라에는 최소 상태 정보
+- Minimal : 최소 상태정보, 최소 상태 정보
+
+이게 왜존재할까? 플레이어에게 다음과 같은 GameplayEffect가 적용되었다.
+
+- 공격력 증가 버프
+- 10초짜리 이동속도 감소
+- 기절 상태
+
+본인에게는 남은 시간, 스택 수 등 구체적인 정보가 필요할 수 있으나 다른 플레이어는 상대방이 기절했다는 상태나 기절 이펙트만 알아도 충분한 게임이 있을 수 있다. 이를 위해 불필요한 네트워크 전송을 줄이기 위해 필요
+
+위에서 최소 상태 정보란 Active GameplayEffect 데이터를 제외하고, 필요한 GameplayTag와 GameplayCue 정보를 전달하는것을 의미한다.
+
+Mixed는 멀티플레이어의 플레이어 캐릭터, Minimal은 일반적인 AI몬스터, Full은 모든 클라가 GE상세정보를 알아야 하는 경우에 사용할 수 있다.
+
+# Actor 생명주기
+
+- Constructor
+  Actor 생성 시 초기 실행, CDO생성 등 게임 실행외의 상황에서도 호출됨
+  -> 초기 실행
+
+- OnConstruction
+  에디터에서 배치하거나 속성을 변경할 때도 실행될 수 있음
+  -> 반복적으로 실행될 수 있음
+
+- PostInitializeComponents
+  액터에 속한 컴포넌트들의 초기화가 끝난 뒤
+
+- BeginPlay
+  월드에 배치되고 게임이 시작되면 실행, 게임 도중 Spawn된액터도 BeginPlay가 실행
+
+# Box, Sphere
+
+- UBoxComponent : 상자 형태의 감지 영역
+- USphereComponent : 구 형태의 감지 영역
+- OnComponentBeginOverlap : 감지영역과 겹치기 시작할 때 호출되는 이벤트
+
+# Find, FindRef
+
+- Find : 값에 대한 포인터, Key가 존재하면 해당 값의 주소, Key가 없으면 nullptr, TMAP의 값 직접 수정 가능
+- FindRef : 값의 복사본, Key가 존재하면 해당 값, Key가 없으면 값 타입의 기본 값, TMAP의 값 직접 수정 불가능
+
+
